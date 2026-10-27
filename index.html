@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DSMA is a student-run program helping local immigrant-owned businesses build and maintain a useful presence online.">
+  <meta name="theme-color" content="#f5f5f1">
+  <title>DSMA — Building websites, empowering communities</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="home-page">
+  <a class="skip-link" href="#top">Skip to content</a>
+  <div class="scroll-meter" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="DSMA home">DSMA<span class="brand-dot">.</span></a>
+    <p class="header-descriptor">Digital Student Marketing Association</p>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu <span aria-hidden="true">+</span></button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="#program">Program</a>
+      <a href="#our-work">Our Work</a>
+      <a href="#contact">Contact</a>
+      <a class="nav-portal" href="portal.html">Customer portal <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top" tabindex="-1">
+    <section class="hero page-grid" aria-labelledby="hero-title">
+      <div class="hero-type">
+        <h1 id="hero-title"><span class="type-line"><span>Building websites,</span></span><span class="type-line"><span>empowering</span></span><span class="type-line"><span><i>communities.</i></span></span></h1>
+        <div class="hero-bottom"><p>We help local immigrant-owned businesses make their presence online as distinctive as the people behind them.</p></div>
+      </div>
+      <figure class="hero-art image-panel tone-blue">
+        <img src="assets/dsma-community.png" alt="DSMA community photography" fetchpriority="high">
+        <figcaption><span>01 / Community</span><span>DSMA</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="program-section page-grid" id="program">
+      <div class="program-intro"><h2>Small businesses.<br>Full presence.</h2><p>DSMA is a non-profit program run by high school students. We support immigrant-owned businesses in the local community with practical digital work.</p></div>
+      <div class="program-aside"><p>Every business has its own voice. The website should make that easier for customers to find, understand, and return to.</p><a class="inline-link" href="#contact">Ask about working together <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section class="image-sequence page-grid" aria-label="DSMA community photography with color treatments">
+      <figure class="sequence-item sequence-large"><div class="image-panel tone-graphite"><img src="assets/dsma-community.png" alt="DSMA community photography with a graphite color treatment" loading="lazy"></div><figcaption><span>Study A / Presence</span><span>DSMA</span></figcaption></figure>
+      <figure class="sequence-item sequence-small"><div class="image-panel tone-orange"><img src="assets/dsma-community.png" alt="DSMA community photography with an orange color treatment" loading="lazy"></div><figcaption><span>Study B / Place</span><span>DSMA</span></figcaption></figure>
+      <figure class="sequence-item sequence-small sequence-third"><div class="image-panel tone-blue"><img src="assets/dsma-community.png" alt="DSMA community photography with a blue color treatment" loading="lazy"></div><figcaption><span>Study C / People</span><span>DSMA</span></figcaption></figure>
+    </section>
+
+    <section class="offer-section page-grid" id="work">
+      <div class="offer-heading"><h2>Built to be<br><em>used.</em></h2><p>Clear information. A website people can actually navigate. A way to keep it current after launch.</p></div>
+      <div class="offer-list" aria-label="Areas of support">
+        <div class="offer-row"><span class="offer-letter">A</span><div><h3>Websites</h3><p>Pages shaped around what customers need to know.</p></div><span class="offer-arrow" aria-hidden="true">↗</span></div>
+        <div class="offer-row"><span class="offer-letter">B</span><div><h3>Content</h3><p>Help organizing a business’s details into something clear and useful.</p></div><span class="offer-arrow" aria-hidden="true">↗</span></div>
+        <div class="offer-row"><span class="offer-letter">C</span><div><h3>Updates</h3><p>Customers can request changes and follow their progress in the private portal.</p></div><span class="offer-arrow" aria-hidden="true">↗</span></div>
+      </div>
+    </section>
+
+    <section class="about-section" id="our-work">
+      <div class="about-inner page-grid">
+        <h2>Our<br><span>Work.</span></h2>
+        <div class="about-copy"><p>Digital work that helps customers find the right information, trust what they see, and take the next step.</p><div class="team-placeholder"><span>Examples to add</span><p>Put selected business projects, outcomes, and short testimonials here.</p></div></div>
+        <figure class="about-image sequence-item"><div class="image-panel tone-silver"><img src="assets/dsma-community.png" alt="DSMA community photography" loading="lazy"></div><figcaption><span>Image study / Work</span><span>DSMA</span></figcaption></figure>
+      </div>
+    </section>
+
+    <section class="contact-section page-grid" id="contact">
+      <div class="contact-heading"><h2>Let’s make<br>something<br><i>useful.</i></h2><p>Interested in DSMA, or have a question? Send a note to the team.</p></div>
+      <form id="contact-form" class="contact-form">
+        <label for="contact-name">Your name<input id="contact-name" name="name" type="text" autocomplete="name" required placeholder="Name"></label>
+        <label for="contact-email">Email address<input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label for="contact-message">Your message<textarea id="contact-message" name="message" rows="5" required placeholder="Tell us what you have in mind"></textarea></label>
+        <button class="button button-ink" type="submit">Send message <span aria-hidden="true">↗</span></button>
+        <p id="contact-status" class="form-status" role="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer page-grid"><div class="footer-top"><a href="#top">Back to top ↑</a></div><div class="footer-wordmark" aria-label="DSMA">DSMA<span>.</span></div><div class="footer-bottom"><span class="footer-motto">Building websites, empowering communities.</span><span>Put official contact details here.</span></div></footer>
+  <script src="script.js" defer></script>
+</body>
+</html>
+
