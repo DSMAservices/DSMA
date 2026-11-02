@@ -4,82 +4,97 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="DSMA is a student-run program helping local immigrant-owned businesses build and maintain a useful presence online.">
-  <meta name="theme-color" content="#f5f5f1">
-  <title>DSMA — Building websites, empowering communities</title>
+  <meta name="theme-color" content="#2d2f45">
+  <title data-i18n="title_home">DSMA — Building websites, empowering communities</title>
+  <link rel="icon" href="assets/dsma-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="home-page">
-  <a class="skip-link" href="#top">Skip to content</a>
+  <a class="skip-link" href="#top" data-i18n="skip">Skip to content</a>
   <div class="scroll-meter" aria-hidden="true"></div>
+  <div class="lang-bar" role="region" aria-label="Language">
+    <div class="lang-bar-inner">
+      <span class="lang-bar-label"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg><span data-i18n="lang_label">Language</span></span>
+      <div class="lang-bar-options"></div>
+      <select class="lang-select" aria-label="Language"></select>
+    </div>
+  </div>
   <header class="site-header">
-    <a class="brand" href="#top" aria-label="DSMA home">DSMA<span class="brand-dot">.</span></a>
-    <p class="header-descriptor">Digital Student Marketing Association</p>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu <span aria-hidden="true">+</span></button>
+    <a class="brand" href="about.html" aria-label="About DSMA: our mission and team" title="About DSMA: our mission and team" data-i18n-label="sign_label" data-i18n-title="sign_label"><img src="assets/dsma-mark.png" alt="DSMA" width="72" height="72"></a>
+    <p class="header-descriptor" data-i18n="descriptor">Free help for immigrant-owned businesses</p>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span data-i18n="nav_menu">Menu</span> <span aria-hidden="true">+</span></button>
     <nav class="site-nav" id="site-nav" aria-label="Main navigation">
-      <a href="#program">Program</a>
-      <a href="#our-work">Our Work</a>
-      <a href="#contact">Contact</a>
-      <a class="nav-portal" href="portal.html">Customer portal <span aria-hidden="true">↗</span></a>
+      <a href="#services" data-i18n="nav_services">Services</a>
+      <a href="#our-work" data-i18n="nav_work">Our work</a>
+      <a href="about.html" data-i18n="nav_mt">About us</a>
+      <a href="#contact" data-i18n="nav_contact">Contact</a>
+      <a class="nav-portal" href="portal.html"><span data-i18n="nav_portal">Customer portal</span> <span aria-hidden="true">↗</span></a>
     </nav>
   </header>
 
   <main id="top" tabindex="-1">
-    <section class="hero page-grid" aria-labelledby="hero-title">
-      <div class="hero-type">
-        <h1 id="hero-title"><span class="type-line"><span>Building websites,</span></span><span class="type-line"><span>empowering</span></span><span class="type-line"><span><i>communities.</i></span></span></h1>
-        <div class="hero-bottom"><p>We help local immigrant-owned businesses make their presence online as distinctive as the people behind them.</p></div>
+    <section class="hero2 page-grid" aria-labelledby="hero-title">
+      <div class="hero2-text">
+        <h1 id="hero-title"><span class="type-line"><span data-i18n="hero_1">Marketing for</span></span><span class="type-line"><span data-i18n="hero_2">small businesses</span></span><span class="type-line"><span><i data-i18n="hero_3">in our community.</i></span></span></h1>
+        <p data-i18n="hero_p">We help immigrant-owned businesses be seen, online and in print.</p>
+        <a class="button button-blue hero-cta" href="#contact"><span data-i18n="hero_cta">Contact us</span> <span aria-hidden="true">↗</span></a>
       </div>
-      <figure class="hero-art image-panel tone-blue">
-        <img src="assets/dsma-community.png" alt="DSMA community photography" fetchpriority="high">
-        <figcaption><span>01 / Community</span><span>DSMA</span></figcaption>
-      </figure>
-    </section>
-
-    <section class="program-section page-grid" id="program">
-      <div class="program-intro"><h2>Small businesses.<br>Full presence.</h2><p>DSMA is a non-profit program run by high school students. We support immigrant-owned businesses in the local community with practical digital work.</p></div>
-      <div class="program-aside"><p>Every business has its own voice. The website should make that easier for customers to find, understand, and return to.</p><a class="inline-link" href="#contact">Ask about working together <span aria-hidden="true">↗</span></a></div>
-    </section>
-
-    <section class="image-sequence page-grid" aria-label="DSMA community photography with color treatments">
-      <figure class="sequence-item sequence-large"><div class="image-panel tone-graphite"><img src="assets/dsma-community.png" alt="DSMA community photography with a graphite color treatment" loading="lazy"></div><figcaption><span>Study A / Presence</span><span>DSMA</span></figcaption></figure>
-      <figure class="sequence-item sequence-small"><div class="image-panel tone-orange"><img src="assets/dsma-community.png" alt="DSMA community photography with an orange color treatment" loading="lazy"></div><figcaption><span>Study B / Place</span><span>DSMA</span></figcaption></figure>
-      <figure class="sequence-item sequence-small sequence-third"><div class="image-panel tone-blue"><img src="assets/dsma-community.png" alt="DSMA community photography with a blue color treatment" loading="lazy"></div><figcaption><span>Study C / People</span><span>DSMA</span></figcaption></figure>
-    </section>
-
-    <section class="offer-section page-grid" id="work">
-      <div class="offer-heading"><h2>Built to be<br><em>used.</em></h2><p>Clear information. A website people can actually navigate. A way to keep it current after launch.</p></div>
-      <div class="offer-list" aria-label="Areas of support">
-        <div class="offer-row"><span class="offer-letter">A</span><div><h3>Websites</h3><p>Pages shaped around what customers need to know.</p></div><span class="offer-arrow" aria-hidden="true">↗</span></div>
-        <div class="offer-row"><span class="offer-letter">B</span><div><h3>Content</h3><p>Help organizing a business’s details into something clear and useful.</p></div><span class="offer-arrow" aria-hidden="true">↗</span></div>
-        <div class="offer-row"><span class="offer-letter">C</span><div><h3>Updates</h3><p>Customers can request changes and follow their progress in the private portal.</p></div><span class="offer-arrow" aria-hidden="true">↗</span></div>
+      <div class="hero2-art">
+        <figure class="plain-photo"><div class="image-panel tone-blue"><img src="assets/dsma-community.png" alt="" width="640" height="480" fetchpriority="high"></div><figcaption><span data-i18n="hero_cap">Community</span><span>DSMA</span></figcaption></figure>
       </div>
     </section>
 
-    <section class="about-section" id="our-work">
-      <div class="about-inner page-grid">
-        <h2>Our<br><span>Work.</span></h2>
-        <div class="about-copy"><p>Digital work that helps customers find the right information, trust what they see, and take the next step.</p><div class="team-placeholder"><span>Examples to add</span><p>Put selected business projects, outcomes, and short testimonials here.</p></div></div>
-        <figure class="about-image sequence-item"><div class="image-panel tone-silver"><img src="assets/dsma-community.png" alt="DSMA community photography" loading="lazy"></div><figcaption><span>Image study / Work</span><span>DSMA</span></figcaption></figure>
+    <section class="trust-strip" id="about" aria-label="DSMA">
+      <ul class="page-grid trust-list"><li data-i18n="fact1_h">Student-run</li><li data-i18n="fact2_h">Non-profit</li><li data-i18n="fact3_h">Local</li></ul>
+    </section>
+
+    <section class="band band-navy" id="services">
+      <div class="band-inner page-grid">
+        <h2 data-i18n="offer_h">What we do</h2>
+        <ul class="chip-row"><li><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="8" width="38" height="26" rx="3"/><path d="M5 16h38M18 41h12M24 34v7"/></svg><span data-i18n="svc_web_h">Websites</span></li><li><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8h32a2 2 0 0 1 2 2v20a2 2 0 0 1-2 2H22l-9 8v-8H8a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"/><path d="M24 26s-7-4.2-7-8.7a3.6 3.6 0 0 1 7-1.6 3.6 3.6 0 0 1 7 1.6c0 4.5-7 8.7-7 8.7z"/></svg><span data-i18n="svc_social_h">Social media</span></li><li><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="38" height="26" rx="3"/><path d="M11 19h14M11 25h10"/><circle cx="34" cy="23" r="4"/></svg><span data-i18n="svc_print_h">Business cards and flyers</span></li><li><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="14" width="38" height="25" rx="4"/><circle cx="24" cy="26" r="7"/><path d="M16 14l3-6h10l3 6"/></svg><span data-i18n="svc_photo_h">Photos and design</span></li></ul>
+      </div>
+    </section>
+
+    <section class="band band-sand" id="how">
+      <div class="band-inner page-grid">
+        <h2 data-i18n="how_h">How it works</h2>
+        <ol class="steps-plain">
+          <li><span class="step-num">1</span><h3 data-i18n="s1_h">Tell us about your business</h3><p data-i18n="s1_p">Send us a message.</p></li>
+          <li><span class="step-num">2</span><h3 data-i18n="s2_h">We build it with you</h3><p data-i18n="s2_p">Our students design your website, posts, or print materials. We check the details with you.</p></li>
+          <li><span class="step-num">3</span><h3 data-i18n="s3_h">Keep it up to date</h3><p data-i18n="s3_p">Ask for changes in the customer portal. See when they will be ready.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band band-light" id="our-work">
+      <div class="band-inner page-grid">
+        <h2 data-i18n="work_h_plain">Our work</h2>
+        <p class="work-note" data-i18n="spec_p">Business projects and customer stories will be here soon.</p>
+        <div class="work-grid">
+          <figure class="work-photo"><img src="assets/dsma-community.png" alt="" loading="lazy"><figcaption><span data-i18n="work_cap">Our work</span><span>DSMA</span></figcaption></figure>
+        </div>
       </div>
     </section>
 
     <section class="contact-section page-grid" id="contact">
-      <div class="contact-heading"><h2>Let’s make<br>something<br><i>useful.</i></h2><p>Interested in DSMA, or have a question? Send a note to the team.</p></div>
-      <form id="contact-form" class="contact-form">
-        <label for="contact-name">Your name<input id="contact-name" name="name" type="text" autocomplete="name" required placeholder="Name"></label>
-        <label for="contact-email">Email address<input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
-        <label for="contact-message">Your message<textarea id="contact-message" name="message" rows="5" required placeholder="Tell us what you have in mind"></textarea></label>
-        <button class="button button-ink" type="submit">Send message <span aria-hidden="true">↗</span></button>
+      <div class="contact-heading"><h2 data-i18n-html="contact_h">Contact us.<br><i>We are happy to help.</i></h2><p data-i18n="contact_p">Send us a message about your business.</p></div>
+      <form id="contact-form" class="contact-form order-slip">
+        <p class="slip-head"><span data-i18n="slip_h">Send us a message</span></p>
+        <label for="contact-name"><span data-i18n="f_name">Your name</span><input id="contact-name" name="name" type="text" autocomplete="name" required data-i18n-ph="ph_name" placeholder="Name"></label>
+        <label for="contact-email"><span data-i18n="f_email">Email address</span><input id="contact-email" name="email" type="email" autocomplete="email" required data-i18n-ph="ph_email" placeholder="you@example.com"></label>
+        <label for="contact-message"><span data-i18n="f_msg">Your message</span><textarea id="contact-message" name="message" rows="4" required data-i18n-ph="ph_msg" placeholder="Tell us about your business"></textarea></label>
+        <div class="hp-field" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <button class="button button-ink" type="submit"><span data-i18n="send">Send message</span> <span aria-hidden="true">↗</span></button>
         <p id="contact-status" class="form-status" role="status"></p>
       </form>
     </section>
   </main>
 
-  <footer class="site-footer page-grid"><div class="footer-top"><a href="#top">Back to top ↑</a></div><div class="footer-wordmark" aria-label="DSMA">DSMA<span>.</span></div><div class="footer-bottom"><span class="footer-motto">Building websites, empowering communities.</span><span>Put official contact details here.</span></div></footer>
+  <footer class="site-footer page-grid"><div class="footer-top"><a href="#top"><span data-i18n="back_top">Back to top</span> ↑</a></div><div class="footer-wordmark"><img src="assets/dsma-mark.png" alt="DSMA" width="170" height="170" loading="lazy"></div><div class="footer-bottom"><span class="footer-motto" data-i18n="foot_motto">Building websites, empowering communities.</span><span data-i18n="foot_contact">Official contact details coming soon.</span></div></footer>
+  <script src="i18n.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 </html>
-

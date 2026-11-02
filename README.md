@@ -13,6 +13,10 @@ DSMA team demo: `team@dsma.demo` / `DSMA-team-2026`
 
 In demo mode, the portal shows one-click buttons to fill those sign-in details. With `DEMO_MODE=false`, those details are hidden and the site requires the MySQL settings in `.env` and the imported schema. Demo data lives in memory and disappears when the server restarts. For a configured non-demo server, copy `.env.example` to `.env`, fill in real settings, and use `npm start`.
 
+## Contact form emails
+
+Messages from the contact form are saved and emailed to `dsmaservicesbps@gmail.com` once the `SMTP_*` settings in `.env.example` are filled in. See `HOSTINGER_DEPLOY.md` for the Gmail steps.
+
 ## Before launch
 
 - `assets/dsma-community.png` is the current shared community image and is intentionally used with several color treatments. Replace it with approved final photography when available.

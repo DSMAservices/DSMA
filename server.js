@@ -8,6 +8,7 @@ const mysql = require("mysql2/promise");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 const rateLimit = require("express-rate-limit");
+const { createMailer } = require("./mailer");
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -18,6 +19,7 @@ if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) { con
 
 const dbOptions = { host: process.env.DB_HOST, port: Number(process.env.DB_PORT || 3306), user: process.env.DB_USER, password: process.env.DB_PASSWORD, database: process.env.DB_NAME, waitForConnections: true, connectionLimit: 10, charset: "utf8mb4" };
 const pool = demoMode ? null : mysql.createPool(dbOptions);
+if (pool) require("./db-setup").ensureDatabase(pool).catch((error) => console.error("Database setup failed:", error.message));
 const sessionStore = demoMode ? undefined : new MySQLStore(dbOptions);
 const demoAccounts = [
   { id: 1, name: "Demo DSMA Team", business_name: null, email: "team@dsma.demo", password_hash: bcrypt.hashSync("DSMA-team-2026", 10), role: "team" },
@@ -31,6 +33,9 @@ app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 app.use(session({ name: "dsma.sid", secret: process.env.SESSION_SECRET, ...(sessionStore ? { store: sessionStore } : {}), resave: false, saveUninitialized: false, cookie: { httpOnly: true, secure: isProduction, sameSite: "lax", maxAge: 1000 * 60 * 60 * 8 } }));
 
+const mailer = createMailer();
+console.log(mailer.enabled ? `Contact form emails go to ${mailer.to}.` : "Contact form emails are OFF: set SMTP_HOST, SMTP_USER and SMTP_PASS to turn them on.");
+const contactLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false, message: { error: "Too many messages. Please try again later." } });
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 15, standardHeaders: true, legacyHeaders: false });
 const send = (res, data, status = 200) => res.status(status).json(data);
 const cleanEmail = (value) => String(value || "").trim().toLowerCase();
@@ -85,9 +90,22 @@ app.delete("/api/tickets.php", requireCsrf, requireAuth(), asyncRoute(async (req
 }));
 
 app.post("/api/team.php", requireCsrf, requireAuth("team"), asyncRoute(async (req, res) => { const name = String(req.body.name || "").trim(); const business = String(req.body.business || "").trim(); const email = cleanEmail(req.body.email); const password = String(req.body.password || ""); if (!name || !business || !email || password.length < 8) return send(res, { error: "Enter all details and a password of at least 8 characters." }, 422); if (demoMode) { if (demoAccounts.some((account) => account.email === email)) return send(res, { error: "An account with that email already exists." }, 409); demoAccounts.push({ id: Date.now(), name, business_name: business, email, password_hash: await bcrypt.hash(password, 10), role: "customer" }); send(res, { ok: true, email }, 201); } else { try { await pool.execute("INSERT INTO users (name, business_name, email, password_hash, role) VALUES (?, ?, ?, ?, 'customer')", [name, business, email, await bcrypt.hash(password, 12)]); send(res, { ok: true, email }, 201); } catch (error) { if (error.code === "ER_DUP_ENTRY") return send(res, { error: "An account with that email already exists." }, 409); throw error; } } }));
-app.post("/api/contact.php", requireCsrf, asyncRoute(async (req, res) => { const name = String(req.body.name || "").trim(); const email = cleanEmail(req.body.email); const message = String(req.body.message || "").trim(); if (!name || !email || !message) return send(res, { error: "Complete all contact fields." }, 422); if (demoMode) demoContacts.push({ name, email, message, created_at: new Date().toISOString() }); else await pool.execute("INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)", [name, email, message]); send(res, { ok: true }, 201); }));
+app.post("/api/contact.php", contactLimiter, requireCsrf, asyncRoute(async (req, res) => {
+  if (String(req.body.website || "").trim()) return send(res, { ok: true }, 201); // hidden spam-trap field: real visitors leave it empty
+  const name = String(req.body.name || "").trim(); const email = cleanEmail(req.body.email); const message = String(req.body.message || "").trim();
+  const language = String(req.body.language || "").slice(0, 5).toLowerCase();
+  if (!name || !email || !message) return send(res, { error: "Complete all contact fields." }, 422);
+  if (name.length > 120 || email.length > 190 || message.length > 5000) return send(res, { error: "One of the fields is too long." }, 422);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, { error: "Enter a valid email address." }, 422);
+  const receivedAt = new Date();
+  if (demoMode) demoContacts.push({ name, email, message, created_at: receivedAt.toISOString() }); else await pool.execute("INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)", [name, email, message]);
+  // The message is already saved, so an email problem is logged but never shown to the visitor as a failure.
+  try { await mailer.sendContact({ name, email, message, language, receivedAt }); } catch (error) { console.error("Contact email failed:", error.message); }
+  send(res, { ok: true }, 201);
+}));
 
 app.use(["/api", "/database", "/tools"], (req, res) => res.status(404).json({ error: "Not found." }));
+app.use(/^\/(server|mailer|db-setup)\.js$|^\/package(-lock)?\.json$|^\/(README|HOSTINGER_DEPLOY)\.md$|^\/node_modules\//i, (req, res) => res.status(404).json({ error: "Not found." }));
 app.use(express.static(root, { extensions: ["html"], index: "index.html" }));
 app.use((req, res) => res.status(404).json({ error: "Not found." }));
 app.use((error, req, res, next) => { console.error(error); if (res.headersSent) return next(error); send(res, { error: "Server error." }, 500); });
