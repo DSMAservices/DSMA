@@ -911,3 +911,13 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 }
 .start-cards h3, .playbook-steps h3 { color: var(--ink); }
 .band-light .split-text { color: var(--ink); }
+
+/* Clear boxes with a visible gap between side-by-side sections */
+.split-row { width: min(var(--max), calc(100% - 2 * var(--gutter))); margin: clamp(28px, 3vw, 48px) auto; gap: clamp(18px, 2.4vw, 36px); border-top: 0; }
+.split-panel { padding: 0; border: 3px solid var(--ink); border-radius: 16px; box-shadow: 8px 8px 0 var(--orange); overflow: hidden; }
+.split-panel .split-inner { max-width: none; margin: 0 !important; padding: clamp(26px, 3vw, 44px); }
+.split-panel.band-navy .split-inner { border-top: 10px solid var(--orange); }
+.split-panel.band-sand .split-inner { border-top: 10px solid var(--ink); }
+.split-panel h2 { padding-bottom: 14px; border-bottom: 3px solid currentColor; }
+@media (max-width: 860px) { .split-row { gap: 34px; } }
+.steps-stack li:first-child { border-top: 0; padding-top: 0; }
