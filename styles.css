@@ -921,3 +921,7 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .split-panel h2 { padding-bottom: 14px; border-bottom: 3px solid currentColor; }
 @media (max-width: 860px) { .split-row { gap: 34px; } }
 .steps-stack li:first-child { border-top: 0; padding-top: 0; }
+.start-redirect { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: clamp(22px, 3vw, 38px) clamp(22px, 3vw, 40px); border: 3px solid var(--ink); border-radius: 16px; background: var(--white); box-shadow: 8px 8px 0 var(--orange); transition: transform 180ms, background 180ms, color 180ms; }
+.start-redirect:hover { transform: translateY(-3px); background: var(--ink); color: var(--white); }
+.band-light .start-redirect:hover h2 { color: var(--white); }
+.start-arrow { font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 800; line-height: 1; }
