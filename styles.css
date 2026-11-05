@@ -1030,64 +1030,6 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 /* Small top rail on the header awning */
 .site-header::after { height: 22px; background: linear-gradient(var(--ink), var(--ink)) left top / 100% 2px no-repeat, var(--awning) repeat-x left 2px / 93px 20px; }
 
-/* Windy awning: one piece, a 15 second sequence of gusts of different strengths from the left, right and all along */
-@keyframes awning-wind {
-  0% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  3.3320000000000003% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  3.333% { transform-origin: 0% 0; transform: none; animation-timing-function: ease-in-out; }
-  4.877% { transform-origin: 0% 0; transform: perspective(260px) rotateX(6.30deg) skewX(0.57deg) skewY(-0.19deg); animation-timing-function: ease-in-out; }
-  6.936% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-4.05deg) skewX(-0.36deg) skewY(0.12deg); animation-timing-function: ease-in-out; }
-  9.123% { transform-origin: 0% 0; transform: perspective(260px) rotateX(4.50deg) skewX(0.40deg) skewY(-0.14deg); animation-timing-function: ease-in-out; }
-  11.31% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-2.70deg) skewX(-0.24deg) skewY(0.08deg); animation-timing-function: ease-in-out; }
-  13.369% { transform-origin: 0% 0; transform: perspective(260px) rotateX(1.80deg) skewX(0.16deg) skewY(-0.05deg); animation-timing-function: ease-in-out; }
-  15.041% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-0.90deg) skewX(-0.08deg) skewY(0.03deg); animation-timing-function: ease-in-out; }
-  16.199% { transform-origin: 0% 0; transform: none; animation-timing-function: ease-in-out; }
-  19.317999999999998% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  19.319% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  20.472% { transform-origin: 50% 0; transform: perspective(260px) rotateX(14.00deg) skewX(1.26deg) skewY(0.11deg); animation-timing-function: ease-in-out; }
-  22.01% { transform-origin: 50% 0; transform: perspective(260px) rotateX(-9.00deg) skewX(-0.81deg) skewY(-0.07deg); animation-timing-function: ease-in-out; }
-  23.644% { transform-origin: 50% 0; transform: perspective(260px) rotateX(10.00deg) skewX(0.90deg) skewY(0.08deg); animation-timing-function: ease-in-out; }
-  25.278% { transform-origin: 50% 0; transform: perspective(260px) rotateX(-6.00deg) skewX(-0.54deg) skewY(-0.05deg); animation-timing-function: ease-in-out; }
-  26.816% { transform-origin: 50% 0; transform: perspective(260px) rotateX(4.00deg) skewX(0.36deg) skewY(0.03deg); animation-timing-function: ease-in-out; }
-  28.066% { transform-origin: 50% 0; transform: perspective(260px) rotateX(-2.00deg) skewX(-0.18deg) skewY(-0.02deg); animation-timing-function: ease-in-out; }
-  28.931% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  32.645% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  32.646% { transform-origin: 100% 0; transform: none; animation-timing-function: ease-in-out; }
-  34.003% { transform-origin: 100% 0; transform: perspective(260px) rotateX(11.20deg) skewX(1.01deg) skewY(0.34deg); animation-timing-function: ease-in-out; }
-  35.812% { transform-origin: 100% 0; transform: perspective(260px) rotateX(-7.20deg) skewX(-0.65deg) skewY(-0.22deg); animation-timing-function: ease-in-out; }
-  37.734% { transform-origin: 100% 0; transform: perspective(260px) rotateX(8.00deg) skewX(0.72deg) skewY(0.24deg); animation-timing-function: ease-in-out; }
-  39.657% { transform-origin: 100% 0; transform: perspective(260px) rotateX(-4.80deg) skewX(-0.43deg) skewY(-0.14deg); animation-timing-function: ease-in-out; }
-  41.466% { transform-origin: 100% 0; transform: perspective(260px) rotateX(3.20deg) skewX(0.29deg) skewY(0.10deg); animation-timing-function: ease-in-out; }
-  42.936% { transform-origin: 100% 0; transform: perspective(260px) rotateX(-1.60deg) skewX(-0.14deg) skewY(-0.05deg); animation-timing-function: ease-in-out; }
-  43.954% { transform-origin: 100% 0; transform: none; animation-timing-function: ease-in-out; }
-  47.779% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  47.78% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  49.485% { transform-origin: 50% 0; transform: perspective(260px) rotateX(4.20deg) skewX(0.38deg) skewY(0.03deg); animation-timing-function: ease-in-out; }
-  51.759% { transform-origin: 50% 0; transform: perspective(260px) rotateX(-2.70deg) skewX(-0.24deg) skewY(-0.02deg); animation-timing-function: ease-in-out; }
-  54.175% { transform-origin: 50% 0; transform: perspective(260px) rotateX(3.00deg) skewX(0.27deg) skewY(0.02deg); animation-timing-function: ease-in-out; }
-  56.591% { transform-origin: 50% 0; transform: perspective(260px) rotateX(-1.80deg) skewX(-0.16deg) skewY(-0.01deg); animation-timing-function: ease-in-out; }
-  58.864% { transform-origin: 50% 0; transform: perspective(260px) rotateX(1.20deg) skewX(0.11deg) skewY(0.01deg); animation-timing-function: ease-in-out; }
-  60.712% { transform-origin: 50% 0; transform: perspective(260px) rotateX(-0.60deg) skewX(-0.05deg) skewY(-0.00deg); animation-timing-function: ease-in-out; }
-  61.991% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  63.466% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  63.467% { transform-origin: 0% 0; transform: none; animation-timing-function: ease-in-out; }
-  65.21% { transform-origin: 0% 0; transform: perspective(260px) rotateX(14.00deg) skewX(1.26deg) skewY(-0.42deg); animation-timing-function: ease-in-out; }
-  67.535% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-9.00deg) skewX(-0.81deg) skewY(0.27deg); animation-timing-function: ease-in-out; }
-  70.006% { transform-origin: 0% 0; transform: perspective(260px) rotateX(10.00deg) skewX(0.90deg) skewY(-0.30deg); animation-timing-function: ease-in-out; }
-  72.476% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-6.00deg) skewX(-0.54deg) skewY(0.18deg); animation-timing-function: ease-in-out; }
-  74.801% { transform-origin: 0% 0; transform: perspective(260px) rotateX(4.00deg) skewX(0.36deg) skewY(-0.12deg); animation-timing-function: ease-in-out; }
-  76.69% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-2.00deg) skewX(-0.18deg) skewY(0.06deg); animation-timing-function: ease-in-out; }
-  77.997% { transform-origin: 0% 0; transform: none; animation-timing-function: ease-in-out; }
-  82.442% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-  82.443% { transform-origin: 0% 0; transform: none; animation-timing-function: ease-in-out; }
-  83.744% { transform-origin: 0% 0; transform: perspective(260px) rotateX(14.00deg) skewX(1.26deg) skewY(-0.42deg); animation-timing-function: ease-in-out; }
-  85.479% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-9.00deg) skewX(-0.81deg) skewY(0.27deg); animation-timing-function: ease-in-out; }
-  87.322% { transform-origin: 0% 0; transform: perspective(260px) rotateX(10.00deg) skewX(0.90deg) skewY(-0.30deg); animation-timing-function: ease-in-out; }
-  89.165% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-6.00deg) skewX(-0.54deg) skewY(0.18deg); animation-timing-function: ease-in-out; }
-  90.9% { transform-origin: 0% 0; transform: perspective(260px) rotateX(4.00deg) skewX(0.36deg) skewY(-0.12deg); animation-timing-function: ease-in-out; }
-  92.309% { transform-origin: 0% 0; transform: perspective(260px) rotateX(-2.00deg) skewX(-0.18deg) skewY(0.06deg); animation-timing-function: ease-in-out; }
-  93.285% { transform-origin: 0% 0; transform: none; animation-timing-function: ease-in-out; }
-  100% { transform-origin: 50% 0; transform: none; animation-timing-function: ease-in-out; }
-}
-.site-header::after { transform-origin: 50% 0; animation: awning-wind 15s linear 1.2s infinite; will-change: transform; }
-@media (prefers-reduced-motion: reduce) { .site-header::after { animation: none; } }
+/* Windy awning: script.js draws the scallops on a canvas and simulates the wind; this is the still version */
+.site-header.awning-live::after { display: none; }
+.awning-canvas { position: absolute; z-index: 1; top: 100%; left: 0; width: 100%; height: 24px; pointer-events: none; }
