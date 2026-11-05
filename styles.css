@@ -1043,3 +1043,4 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .site-nav a { white-space: nowrap; }
 @media (max-width: 1240px) { .site-header .header-descriptor { display: none; } .brand-name { max-width: 17ch; font-size: .92rem; } }
 .footer-wordmark .footer-name { color: #ece9da; }
+.portal-main.pt-active { padding-top: clamp(52px, 5vw, 68px); }
