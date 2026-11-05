@@ -1026,3 +1026,6 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .start-compact .start-arrow { font-size: 1.5rem; }
 @media (max-width: 560px) { .start-redirect.start-compact { flex-wrap: wrap; } .start-compact .start-text { flex-basis: 100%; order: 3; } }
 .start-strip .start-redirect { grid-column: 1 / -1; }
+
+/* Small top rail on the header awning */
+.site-header::after { height: 25px; background: linear-gradient(var(--ink), var(--ink)) left top / 100% 5px no-repeat, var(--awning) repeat-x left 5px / 93px 20px; }
