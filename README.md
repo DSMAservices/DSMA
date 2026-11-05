@@ -26,3 +26,7 @@ Messages from the contact form are saved and emailed to `dsmaservicesbps@gmail.c
 
 The design loads Archivo from Google Fonts. The CSS includes system font fallbacks; the server’s content security policy allows only that font stylesheet and font files in addition to local assets.
 
+
+## Portal messages and attachments
+
+Each request is a conversation between the business and the DSMA team. Either side can attach up to 4 files per message (images, PDF, Word, Excel, PowerPoint, CSV or text, 5 MB each). Files are stored in the database (`ticket_files`), checked on upload, and only the business that owns the request and the DSMA team can open them. The new tables are created automatically on the next start.

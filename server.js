@@ -27,8 +27,12 @@ const demoAccounts = [
 ];
 let demoTickets = [];
 let demoContacts = [];
+let demoMessages = [];
+let demoFiles = [];
+let demoSeq = 1;
 app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], styleSrc: ["'self'", "https://fonts.googleapis.com"], fontSrc: ["'self'", "https://fonts.gstatic.com"], scriptSrc: ["'self'"], imgSrc: ["'self'", "data:"] } } }));
+app.use(["/api/messages.php", "/api/tickets.php"], express.json({ limit: "28mb" }));
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 app.use(session({ name: "dsma.sid", secret: process.env.SESSION_SECRET, ...(sessionStore ? { store: sessionStore } : {}), resave: false, saveUninitialized: false, cookie: { httpOnly: true, secure: isProduction, sameSite: "lax", maxAge: 1000 * 60 * 60 * 8 } }));
@@ -57,14 +61,100 @@ app.post("/api/auth.php", authLimiter, asyncRoute(async (req, res, next) => {
   await new Promise((resolve, reject) => req.session.regenerate((error) => error ? reject(error) : resolve())); const safeAccount = { ...account }; delete safeAccount.password_hash; req.session.user = safeAccount; csrfToken(req); send(res, { user: safeAccount });
 }));
 
+// ---- Message attachments ----
+const MAX_FILES = 4;
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const FILE_TYPES = {
+  png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
+  pdf: "application/pdf", txt: "text/plain", csv: "text/csv",
+  doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+};
+const INLINE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
+const MAGIC = { png: [0x89, 0x50, 0x4e, 0x47], jpg: [0xff, 0xd8, 0xff], jpeg: [0xff, 0xd8, 0xff], gif: [0x47, 0x49, 0x46, 0x38], pdf: [0x25, 0x50, 0x44, 0x46] };
+const cleanFileName = (value) => String(value || "file").split(/[\\/]/).pop().replace(/[\u0000-\u001f"<>:*?|]/g, "").trim().slice(0, 150) || "file";
+// Returns { files } or { error }. The type comes from the file extension, never from what the browser claims.
+const parseAttachments = (list) => {
+  if (list === undefined || list === null) return { files: [] };
+  if (!Array.isArray(list)) return { error: "Attachments are not valid." };
+  if (list.length > MAX_FILES) return { error: `You can attach up to ${MAX_FILES} files at a time.` };
+  const files = [];
+  for (const item of list) {
+    const name = cleanFileName(item && item.name); const ext = (name.split(".").pop() || "").toLowerCase();
+    if (!FILE_TYPES[ext] || !name.includes(".")) return { error: `"${name}" is not an allowed file type. Use images, PDF, Word, Excel, PowerPoint, CSV or text files.` };
+    const data = Buffer.from(String((item && item.data) || ""), "base64");
+    if (!data.length) return { error: `"${name}" is empty.` };
+    if (data.length > MAX_FILE_BYTES) return { error: `"${name}" is larger than 5 MB.` };
+    if (MAGIC[ext] && !MAGIC[ext].every((byte, index) => data[index] === byte)) return { error: `"${name}" does not look like a real .${ext} file.` };
+    if (ext === "webp" && data.subarray(8, 12).toString("ascii") !== "WEBP") return { error: `"${name}" does not look like a real .webp file.` };
+    files.push({ name, mime: FILE_TYPES[ext], size: data.length, data });
+  }
+  return { files };
+};
+// Can this signed-in user see this ticket? Returns the ticket row or null.
+const ticketFor = async (user, id) => {
+  if (demoMode) { const ticket = demoTickets.find((item) => item.id === id); return ticket && (user.role === "team" || ticket.customer_id === user.id) ? ticket : null; }
+  const [rows] = await pool.execute(user.role === "team" ? "SELECT id, customer_id FROM tickets WHERE id = ?" : "SELECT id, customer_id FROM tickets WHERE id = ? AND customer_id = ?", user.role === "team" ? [id] : [id, user.id]);
+  return rows[0] || null;
+};
+const addMessage = async (ticketId, user, body, files) => {
+  if (demoMode) {
+    const message = { id: demoSeq++, ticket_id: ticketId, author_id: user.id, author_role: user.role, author_name: user.role === "team" ? "DSMA team" : (user.business_name || user.name), body, created_at: new Date().toISOString() };
+    demoMessages.push(message);
+    for (const file of files) demoFiles.push({ id: demoSeq++, message_id: message.id, ticket_id: ticketId, name: file.name, mime: file.mime, size: file.size, data: file.data });
+    return message.id;
+  }
+  const [inserted] = await pool.execute("INSERT INTO ticket_messages (ticket_id, author_id, author_role, body) VALUES (?, ?, ?, ?)", [ticketId, user.id, user.role, body]);
+  for (const file of files) await pool.execute("INSERT INTO ticket_files (message_id, ticket_id, name, mime, size, data) VALUES (?, ?, ?, ?, ?, ?)", [inserted.insertId, ticketId, file.name, file.mime, file.size, file.data]);
+  await pool.execute("UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [ticketId]);
+  return inserted.insertId;
+};
+const messageLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false, message: { error: "Too many messages. Please wait a few minutes." } });
+
+app.get("/api/messages.php", requireAuth(), asyncRoute(async (req, res) => {
+  const id = String(req.query.ticket_id || "").trim();
+  if (!(await ticketFor(req.session.user, id))) return send(res, { error: "Request not found." }, 404);
+  let messages; let files;
+  if (demoMode) {
+    messages = demoMessages.filter((item) => item.ticket_id === id);
+    files = demoFiles.filter((item) => item.ticket_id === id).map(({ id: fileId, message_id, name, mime, size }) => ({ id: fileId, message_id, name, mime, size }));
+  } else {
+    [messages] = await pool.execute("SELECT m.id, m.author_role, m.body, m.created_at, COALESCE(u.business_name, u.name) AS author_name FROM ticket_messages m JOIN users u ON u.id = m.author_id WHERE m.ticket_id = ? ORDER BY m.created_at, m.id", [id]);
+    [files] = await pool.execute("SELECT id, message_id, name, mime, size FROM ticket_files WHERE ticket_id = ? ORDER BY id", [id]);
+  }
+  send(res, { messages: messages.map((message) => ({ id: message.id, author_role: message.author_role, author_name: message.author_role === "team" ? "DSMA team" : message.author_name, body: message.body, created_at: message.created_at, files: files.filter((file) => String(file.message_id) === String(message.id)).map(({ id: fileId, name, mime, size }) => ({ id: fileId, name, mime, size, image: INLINE_TYPES.has(mime) })) })) });
+}));
+app.post("/api/messages.php", messageLimiter, requireCsrf, requireAuth(), asyncRoute(async (req, res) => {
+  const id = String(req.body.ticket_id || "").trim(); const body = String(req.body.body || "").trim();
+  if (!(await ticketFor(req.session.user, id))) return send(res, { error: "Request not found." }, 404);
+  if (body.length > 5000) return send(res, { error: "That message is too long." }, 422);
+  const parsed = parseAttachments(req.body.attachments);
+  if (parsed.error) return send(res, { error: parsed.error }, 422);
+  if (!body && !parsed.files.length) return send(res, { error: "Write a message or attach a file." }, 422);
+  await addMessage(id, req.session.user, body, parsed.files);
+  send(res, { ok: true }, 201);
+}));
+app.get("/api/files.php", requireAuth(), asyncRoute(async (req, res) => {
+  const id = Number(req.query.id); let file;
+  if (!Number.isInteger(id)) return send(res, { error: "File not found." }, 404);
+  if (demoMode) file = demoFiles.find((item) => item.id === id);
+  else { const [rows] = await pool.execute("SELECT ticket_id, name, mime, data FROM ticket_files WHERE id = ?", [id]); file = rows[0]; }
+  if (!file || !(await ticketFor(req.session.user, file.ticket_id))) return send(res, { error: "File not found." }, 404);
+  const inline = INLINE_TYPES.has(file.mime) && req.query.download !== "1";
+  res.set({ "Content-Type": file.mime, "Content-Length": file.data.length, "X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=3600", "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(file.name)}` });
+  res.send(file.data);
+}));
+
 app.get("/api/tickets.php", requireAuth(), asyncRoute(async (req, res) => {
   let rows;
   if (demoMode) rows = req.session.user.role === "customer" ? demoTickets.filter((ticket) => ticket.customer_id === req.session.user.id) : demoTickets;
-  else if (req.session.user.role === "customer") { [rows] = await pool.execute("SELECT id, subject, details, status, eta_date, created_at, updated_at FROM tickets WHERE customer_id = ? ORDER BY created_at DESC", [req.session.user.id]); }
-  else { [rows] = await pool.execute("SELECT t.id, t.subject, t.details, t.status, t.eta_date, t.created_at, t.updated_at, u.business_name, u.email FROM tickets t JOIN users u ON u.id = t.customer_id ORDER BY t.created_at DESC"); }
+  else if (req.session.user.role === "customer") { [rows] = await pool.execute("SELECT id, subject, details, status, eta_date, created_at, updated_at, (SELECT m.author_role FROM ticket_messages m WHERE m.ticket_id = tickets.id ORDER BY m.id DESC LIMIT 1) AS last_author_role FROM tickets WHERE customer_id = ? ORDER BY created_at DESC", [req.session.user.id]); }
+  else { [rows] = await pool.execute("SELECT t.id, t.subject, t.details, t.status, t.eta_date, t.created_at, t.updated_at, u.business_name, u.email, (SELECT m.author_role FROM ticket_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1) AS last_author_role FROM tickets t JOIN users u ON u.id = t.customer_id ORDER BY t.created_at DESC"); }
+  if (demoMode) rows = rows.map((ticket) => ({ ...ticket, last_author_role: ([...demoMessages].reverse().find((message) => message.ticket_id === ticket.id) || {}).author_role || null }));
   send(res, { tickets: rows });
 }));
-app.post("/api/tickets.php", requireCsrf, requireAuth("customer"), asyncRoute(async (req, res) => { const subject = String(req.body.subject || "").trim(); const details = String(req.body.details || "").trim(); if (!subject || !details) return send(res, { error: "Subject and details are required." }, 422); const id = `DSMA-${crypto.randomBytes(3).toString("hex").toUpperCase()}`; if (demoMode) { demoTickets.unshift({ id, customer_id: req.session.user.id, subject, details, status: "New", eta_date: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), business_name: "Demo Business", email: req.session.user.email }); } else await pool.execute("INSERT INTO tickets (id, customer_id, subject, details, status) VALUES (?, ?, ?, ?, 'New')", [id, req.session.user.id, subject, details]); send(res, { id }, 201); }));
+app.post("/api/tickets.php", requireCsrf, requireAuth("customer"), asyncRoute(async (req, res) => { const subject = String(req.body.subject || "").trim(); const details = String(req.body.details || "").trim(); if (!subject || !details) return send(res, { error: "Subject and details are required." }, 422); if (subject.length > 200 || details.length > 5000) return send(res, { error: "Subject or details are too long." }, 422); const parsed = parseAttachments(req.body.attachments); if (parsed.error) return send(res, { error: parsed.error }, 422); const id = `DSMA-${crypto.randomBytes(3).toString("hex").toUpperCase()}`; if (demoMode) { demoTickets.unshift({ id, customer_id: req.session.user.id, subject, details, status: "New", eta_date: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), business_name: "Demo Business", email: req.session.user.email }); } else await pool.execute("INSERT INTO tickets (id, customer_id, subject, details, status) VALUES (?, ?, ?, ?, 'New')", [id, req.session.user.id, subject, details]); if (parsed.files.length) await addMessage(id, req.session.user, "", parsed.files); send(res, { id }, 201); }));
 app.patch("/api/tickets.php", requireCsrf, requireAuth(), asyncRoute(async (req, res) => {
   const id = String(req.body.id || "").trim(); if (!id) return send(res, { error: "Ticket id is required." }, 422);
   if (demoMode) { const ticket = demoTickets.find((item) => item.id === id); if (!ticket || (req.session.user.role === "customer" && ticket.customer_id !== req.session.user.id)) return send(res, { error: "Ticket not found or not editable." }, 404); if (req.session.user.role === "customer") { ticket.subject = String(req.body.subject || "").trim(); ticket.details = String(req.body.details || "").trim(); } else { ticket.status = ["New", "In progress", "Waiting", "Complete"].includes(req.body.status) ? req.body.status : "New"; ticket.eta_date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body.eta_date || "")) ? req.body.eta_date : null; } ticket.updated_at = new Date().toISOString(); }
@@ -79,6 +169,7 @@ app.delete("/api/tickets.php", requireCsrf, requireAuth(), asyncRoute(async (req
     const index = demoTickets.findIndex((ticket) => ticket.id === id && (req.session.user.role === "team" || ticket.customer_id === req.session.user.id));
     if (index === -1) return send(res, { error: "Ticket not found or not available to delete." }, 404);
     demoTickets.splice(index, 1);
+    demoMessages = demoMessages.filter((message) => message.ticket_id !== id); demoFiles = demoFiles.filter((file) => file.ticket_id !== id);
   } else {
     const query = req.session.user.role === "customer"
       ? ["DELETE FROM tickets WHERE id = ? AND customer_id = ?", [id, req.session.user.id]]
