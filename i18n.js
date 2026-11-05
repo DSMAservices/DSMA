@@ -15,6 +15,7 @@ window.DSMA_I18N = {
   ],
   strings: {
     en: {
+      pt_show_pw: "Show password", pt_hide_pw: "Hide password",
       pt_change_pw: "Change password", pt_current_pw: "Current password", pt_new_pw: "New password", pt_confirm_pw: "Type the new password again",
       pt_pw_hint: "Use at least 8 characters.", pt_pw_mismatch: "The two new passwords do not match.", pt_pw_changed: "Your password has been changed.", pt_save_pw: "Save password",
       pt_forgot: "Forgot password?", pt_forgot_h: "Forgot your password?", pt_forgot_help: "Enter your email address and we will send you a link to choose a new one.",

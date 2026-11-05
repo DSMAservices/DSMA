@@ -322,3 +322,29 @@ window.PortalUI = (() => {
 
   return { show, rerender };
 })();
+
+// ---- Show/hide eye button on every password field (also the ones the portal draws later) ----
+(() => {
+  const eye = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12s3.8-7 10.5-7 10.5 7 10.5 7-3.8 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const eyeOff = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.6 10.6 0 0 1 12 19.5C5.3 19.5 1.5 12 1.5 12a18.5 18.5 0 0 1 4.6-5.6M9.9 4.7A9.7 9.7 0 0 1 12 4.5c6.7 0 10.5 7.5 10.5 7.5a18.6 18.6 0 0 1-2.2 3.2M1 1l22 22"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+  const label = (shown) => tr(shown ? "pt_hide_pw" : "pt_show_pw");
+  const enhance = (input) => {
+    if (input.dataset.eye) return;
+    input.dataset.eye = "1";
+    const wrap = document.createElement("span");
+    wrap.className = "pw-wrap";
+    input.before(wrap); wrap.appendChild(input);
+    const button = document.createElement("button");
+    button.type = "button"; button.className = "pw-eye"; button.innerHTML = eye; button.setAttribute("aria-pressed", "false"); button.setAttribute("aria-label", label(false)); button.title = label(false);
+    button.addEventListener("click", () => {
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      button.innerHTML = show ? eyeOff : eye; button.setAttribute("aria-pressed", String(show)); button.setAttribute("aria-label", label(show)); button.title = label(show);
+      input.focus({ preventScroll: true });
+    });
+    wrap.appendChild(button);
+  };
+  const scan = () => document.querySelectorAll('input[type="password"]:not([data-eye])').forEach(enhance);
+  scan();
+  new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+})();

@@ -1053,3 +1053,10 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .reset-panel { max-width: 480px; display: grid; gap: 14px; }
 .reset-panel > p { margin: 0; }
 @media (max-width: 860px) { .pt-top-actions { justify-content: flex-start; } }
+
+/* Show/hide password eye */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap input { width: 100%; padding-inline-end: 46px; }
+.pw-eye { position: absolute; top: 50%; inset-inline-end: 4px; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; transform: translateY(-50%); border: 0; border-radius: 8px; background: transparent; color: var(--ink); }
+.pw-eye:hover { background: rgba(45, 47, 69, .08); }
+.pw-eye:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
