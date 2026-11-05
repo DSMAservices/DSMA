@@ -15,6 +15,7 @@ window.DSMA_I18N = {
   ],
   strings: {
     en: {
+      pt_translate: "Translate", pt_translating: "Translating…", pt_show_original: "Show original", pt_translated_to: "Translated to {language}",
       pt_new_request: "New request", pt_new_customer: "New customer", pt_back: "All requests", pt_cancel: "Cancel",
       pt_team_eyebrow: "Team workspace", pt_team_title: "Request inbox", pt_filter: "Filter by status", pt_all: "All",
       pt_help_customer: "Ask for changes, send photos and files, and follow progress. Your messages go to the DSMA team.",

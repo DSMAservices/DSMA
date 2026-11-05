@@ -8,7 +8,7 @@ window.PortalUI = (() => {
   const STATUSES = ["New", "In progress", "Waiting", "Complete"];
   const POLL_MS = 20000;
 
-  const state = { role: null, user: null, tickets: [], selected: null, view: "empty", filter: "all", messageCount: -1 };
+  const state = { translate: false, role: null, user: null, tickets: [], selected: null, view: "empty", filter: "all", messageCount: -1 };
   let root = null;
   let picker = null;
   let timer = null;
@@ -126,13 +126,13 @@ window.PortalUI = (() => {
   const fileHtml = (file) => file.image
     ? `<a class="pt-img" href="api/files.php?id=${file.id}" target="_blank" rel="noopener" title="${escapeHtml(file.name)}"><img src="api/files.php?id=${file.id}" alt="${escapeHtml(file.name)}" loading="lazy"></a>`
     : `<a class="pt-doc" href="api/files.php?id=${file.id}&download=1">${clip}<span>${escapeHtml(file.name)} <small>${size(file.size)}</small></span></a>`;
-  const bubble = (who, name, when, body, files) => `<article class="pt-msg ${who === state.role ? "is-mine" : "is-theirs"}"><header><strong>${escapeHtml(who === state.role ? tr("pt_you") : name)}</strong><span>${escapeHtml(when)}</span></header>${body ? `<p>${escapeHtml(body)}</p>` : ""}${files.length ? `<div class="pt-files">${files.map(fileHtml).join("")}</div>` : ""}</article>`;
+  const bubble = (who, name, when, body, files, id) => `<article class="pt-msg ${who === state.role ? "is-mine" : "is-theirs"}" data-msg="${escapeHtml(String(id))}"><header><strong>${escapeHtml(who === state.role ? tr("pt_you") : name)}</strong><span>${escapeHtml(when)}</span></header>${body ? `<p>${escapeHtml(body)}</p>` : ""}${body && state.translate ? `<div class="pt-translate"><button type="button" class="pt-tr-btn" data-act="translate">${escapeHtml(tr("pt_translate"))}</button><p class="pt-tr-out" hidden></p></div>` : ""}${files.length ? `<div class="pt-files">${files.map(fileHtml).join("")}</div>` : ""}</article>`;
   const ticket = () => state.tickets.find((item) => item.id === state.selected);
 
   const messagesHtml = (messages) => {
     const current = ticket();
-    const first = bubble("customer", current.business_name || state.user.business_name || tr("d_default_name"), time(current.created_at), current.details, []);
-    return `<span class="pt-section-label">${escapeHtml(tr("pt_original"))}</span>${first}${messages.length ? `<span class="pt-section-label">${escapeHtml(tr("pt_conversation"))}</span>` : ""}${messages.map((message) => bubble(message.author_role, message.author_name, time(message.created_at), message.body, message.files)).join("")}`;
+    const first = bubble("customer", current.business_name || state.user.business_name || tr("d_default_name"), time(current.created_at), current.details, [], "original");
+    return `<span class="pt-section-label">${escapeHtml(tr("pt_original"))}</span>${first}${messages.length ? `<span class="pt-section-label">${escapeHtml(tr("pt_conversation"))}</span>` : ""}${messages.map((message) => bubble(message.author_role, message.author_name, time(message.created_at), message.body, message.files, message.id)).join("")}`;
   };
 
   const drawThread = async (main) => {
@@ -189,6 +189,20 @@ window.PortalUI = (() => {
   };
   const openTicket = async (id) => { state.selected = id; state.messageCount = -1; setView("thread"); root.scrollIntoView({ block: "start" }); };
 
+  const translateMessage = async (article, button) => {
+    const out = article.querySelector(".pt-tr-out");
+    if (out.dataset.done === "1") { // toggle between translation and original
+      const showing = !out.hidden; out.hidden = showing; button.textContent = showing ? tr("pt_translate") : tr("pt_show_original"); return;
+    }
+    button.disabled = true; button.textContent = tr("pt_translating");
+    try {
+      const result = await api("api/translate.php", { method: "POST", body: JSON.stringify({ ticket_id: state.selected, message_id: article.dataset.msg, target: lang() || "en" }) });
+      out.textContent = result.text; out.hidden = false; out.dataset.done = "1"; out.dataset.lang = result.language;
+      out.setAttribute("aria-label", tr("pt_translated_to", { language: result.language })); button.textContent = tr("pt_show_original");
+    } catch (error) { button.textContent = tr("pt_translate"); window.alert(error.message); }
+    button.disabled = false;
+  };
+
   const onClick = async (event) => {
     const filter = event.target.closest("[data-filter]");
     if (filter) { state.filter = filter.dataset.filter; root.querySelectorAll("[data-filter]").forEach((button) => button.classList.toggle("is-on", button === filter)); return drawList(); }
@@ -197,6 +211,7 @@ window.PortalUI = (() => {
     const act = event.target.closest("[data-act]")?.dataset.act;
     if (!act) return;
     try {
+      if (act === "translate") return translateMessage(event.target.closest(".pt-msg"), event.target.closest("[data-act]"));
       if (act === "logout") return logout();
       if (act === "new") { state.selected = null; return setView("new"); }
       if (act === "customer") { state.selected = null; return setView("customer"); }
@@ -225,6 +240,7 @@ window.PortalUI = (() => {
 
   const show = async (role, user) => {
     state.role = role; state.user = user;
+    try { state.translate = Boolean((await api("api/auth.php?action=me")).translate); } catch { state.translate = false; }
     root = role === "customer" ? $("#customer-dashboard") : $("#dashboard-view");
     $(".portal-main")?.classList.add("pt-active");
     $(".portal-tabs")?.classList.add("is-hidden");
