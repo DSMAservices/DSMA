@@ -70,23 +70,26 @@ if (footerMark && "IntersectionObserver" in window) {
 // each flap springs back with some overshoot, and neighbours pull on each other, so a flutter travels along the edge.
 (() => {
   const header = document.querySelector(".site-header");
-  if (!header || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!header) return;
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canvas = document.createElement("canvas");
   canvas.className = "awning-canvas"; canvas.setAttribute("aria-hidden", "true");
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   header.appendChild(canvas);
   const root = getComputedStyle(document.documentElement);
-  const COLORS = [root.getPropertyValue("--blue").trim() || "#3e4059", root.getPropertyValue("--orange").trim() || "#d27f65"];
+  const hex = (value) => (value.trim().replace("#", "").match(/.{2}/g) || ["00", "00", "00"]).map((part) => parseInt(part, 16));
+  const NAVY = hex(root.getPropertyValue("--blue") || "#3e4059"), ORANGE = hex(root.getPropertyValue("--orange") || "#d27f65"), CREAM = hex(root.getPropertyValue("--paper") || "#f3f1e0");
+  const PALETTE = [NAVY, ORANGE, CREAM];
   const INK = root.getPropertyValue("--ink").trim() || "#2d2f45";
   const SW = 23.25, RAIL = 2, STRAIGHT = 8.3, RADIUS = SW / 2, HEIGHT = 24;
   let width = 0, dpr = 1, count = 0;
-  const swing = [], swingV = [], sway = [], swayV = [];
+  const swing = [], swingV = [], sway = [], swayV = [], shown = [], target = [];
   const resize = () => {
     width = header.clientWidth; dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(width * dpr); canvas.height = Math.round(HEIGHT * dpr);
     count = Math.ceil(width / SW) + 1;
-    while (swing.length < count) { swing.push(0); swingV.push(0); sway.push(0); swayV.push(0); }
+    while (swing.length < count) { swing.push(0); swingV.push(0); sway.push(0); swayV.push(0); shown.push([NAVY.slice(), ORANGE.slice()]); target.push([NAVY, ORANGE]); }
   };
   resize(); window.addEventListener("resize", resize);
 
@@ -97,6 +100,7 @@ if (footerMark && "IntersectionObserver" in window) {
     gusts.push({ t0: now, centre: roll < .33 ? Math.random() * .25 : roll < .66 ? .75 + Math.random() * .25 : Math.random(), spread: roll < .66 ? .14 + Math.random() * .14 : .4 + Math.random() * .4, power: Math.random() < .12 ? 1 + Math.random() * .4 : .3 + Math.random() * .7, side: Math.random() < .5 ? -1 : 1, tau: .6 + Math.random() * .7 });
     return now + (Math.random() < .1 ? 3 + Math.random() * 2.5 : .5 + Math.random() * 1.7);
   };
+  const WIND = calm ? 0 : 1;
   const STIFF = 70, DAMP = 2.4, COUPLE = 55, PUSH = 60;
   const step = (dt, now) => {
     for (let i = 0; i < count; i++) {
@@ -111,8 +115,8 @@ if (footerMark && "IntersectionObserver" in window) {
       }
       const breeze = Math.sin(1.7 * now + .5 * i) * Math.sin(.37 * now + 2 * i);
       const left = i > 0 ? i - 1 : i, right = i < count - 1 ? i + 1 : i;
-      swingV[i] += (PUSH * push + 5 * breeze - STIFF * swing[i] - DAMP * swingV[i] + COUPLE * (swing[left] + swing[right] - 2 * swing[i])) * dt;
-      swayV[i] += (PUSH * .9 * side + 4 * breeze - STIFF * sway[i] - DAMP * swayV[i] + COUPLE * (sway[left] + sway[right] - 2 * sway[i])) * dt;
+      swingV[i] += (WIND * (PUSH * push + 5 * breeze) - STIFF * swing[i] - DAMP * swingV[i] + COUPLE * (swing[left] + swing[right] - 2 * swing[i])) * dt;
+      swayV[i] += (WIND * (PUSH * .9 * side + 4 * breeze) - STIFF * sway[i] - DAMP * swayV[i] + COUPLE * (sway[left] + sway[right] - 2 * sway[i])) * dt;
     }
     for (let i = 0; i < count; i++) { swing[i] += swingV[i] * dt; sway[i] += swayV[i] * dt; }
   };
@@ -122,24 +126,62 @@ if (footerMark && "IntersectionObserver" in window) {
       const angle = Math.max(-.35, Math.min(1.25, swing[i])), lean = Math.max(-.7, Math.min(.7, sway[i]));
       ctx.save(); ctx.translate(i * SW, RAIL); ctx.transform(1, 0, Math.sin(lean), Math.cos(angle), 0, 0);
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(SW, 0); ctx.lineTo(SW, STRAIGHT); ctx.arc(SW / 2, STRAIGHT, RADIUS, 0, Math.PI); ctx.closePath();
-      ctx.fillStyle = COLORS[i % 2]; ctx.fill();
+      const tone = shown[i][i % 2]; ctx.fillStyle = `rgb(${tone[0] | 0},${tone[1] | 0},${tone[2] | 0})`; ctx.fill();
       if (angle > 0) { ctx.fillStyle = `rgba(255,255,255,${(Math.min(angle, 1) * .22).toFixed(3)})`; ctx.fill(); }
       ctx.restore();
     }
     ctx.fillStyle = INK; ctx.fillRect(0, 0, width, RAIL);
   };
 
-  let running = false, last = 0, now = 0, nextGust = 1.2;
+
+  // Colours: each scallop looks at what is behind it and picks two colours that stand out from it, then fades to them.
+  const photoTone = new WeakMap();
+  const parseColor = (text) => { const m = text.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { rgb: p.slice(0, 3), alpha: p.length > 3 ? p[3] : 1 }; };
+  const imageTone = (img) => {
+    if (photoTone.has(img)) return photoTone.get(img);
+    let tone = null;
+    try { if (img.complete && img.naturalWidth) { const probe = document.createElement("canvas"); probe.width = probe.height = 1; const g = probe.getContext("2d"); g.drawImage(img, 0, 0, 1, 1); const d = g.getImageData(0, 0, 1, 1).data; const lum = .3 * d[0] + .59 * d[1] + .11 * d[2]; tone = [lum, lum, lum * 1.1]; } } catch { tone = null; }
+    if (tone || img.complete) photoTone.set(img, tone);
+    return tone;
+  };
+  const backgroundAt = (x, y) => {
+    let node = document.elementFromPoint(x, y);
+    while (node && node !== document.documentElement) {
+      if (node.tagName === "IMG") { const tone = imageTone(node); if (tone) return tone; }
+      const colour = parseColor(getComputedStyle(node).backgroundColor);
+      if (colour && colour.alpha > .6) return colour.rgb;
+      node = node.parentElement;
+    }
+    return CREAM;
+  };
+  const distance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const choose = (background) => { for (const least of [110, 70, 40, 0]) { const fit = PALETTE.filter((colour) => distance(colour, background) >= least); if (fit.length >= 2) return [fit[0], fit[1]]; } return [NAVY, ORANGE]; };
+  const sample = (snap) => {
+    const y = header.getBoundingClientRect().bottom + 10;
+    for (let i = 0; i < count; i++) {
+      target[i] = choose(backgroundAt(Math.min(Math.max(i * SW + SW / 2, 1), window.innerWidth - 2), y));
+      if (snap) shown[i] = [target[i][0].slice(), target[i][1].slice()];
+    }
+  };
+  const fade = (dt) => {
+    const amount = 1 - Math.exp(-dt * 9);
+    for (let i = 0; i < count; i++) for (let k = 0; k < 2; k++) for (let c = 0; c < 3; c++) shown[i][k][c] += (target[i][k][c] - shown[i][k][c]) * amount;
+  };
+
+  let running = false, last = 0, now = 0, nextGust = calm ? Infinity : 1.2, lastSample = -9, lastScroll = -1;
   const frame = (stamp) => {
     if (!running) return;
     const dt = Math.min((stamp - last) / 1000 || 0, .033); last = stamp; now += dt;
     if (now >= nextGust) nextGust = newGust(now);
+    if (window.scrollY !== lastScroll || now - lastSample > 1) { sample(false); lastScroll = window.scrollY; lastSample = now; }
+    fade(dt);
     while (gusts.length && now - gusts[0].t0 > 6) gusts.shift();
     step(dt / 2, now); step(dt / 2, now); draw();
     requestAnimationFrame(frame);
   };
   const start = () => { if (running) return; running = true; last = performance.now(); header.classList.add("awning-live"); requestAnimationFrame(frame); };
   const stop = () => { running = false; };
-  draw(); header.classList.add("awning-live");
+  sample(true); draw(); header.classList.add("awning-live");
+  window.addEventListener("load", () => sample(false));
   if ("IntersectionObserver" in window) new IntersectionObserver((entries) => (entries[0].isIntersecting ? start() : stop())).observe(header); else start();
 })();
