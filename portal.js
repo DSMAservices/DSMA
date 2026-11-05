@@ -1,4 +1,4 @@
-// Portal workspace for customers and the DSMA team: a request list, a conversation per request,
+// Portal workspace for clients and the DSMA team: a request list, a conversation per request,
 // and attachments (images and documents) on every message. Shared helpers ($, api, tr, escapeHtml,
 // formatDate, logout) come from script.js, which loads first.
 window.PortalUI = (() => {
@@ -318,7 +318,41 @@ window.PortalUI = (() => {
     });
     return true;
   };
-  if (!setupReset()) setupForgot();
+
+  // ---- Sign-up: a clearly visible "Create an account" button on the client sign-in, opening a short form ----
+  const setupSignup = () => {
+    const login = $("#customer-login-form");
+    if (!login) return;
+    const cta = document.createElement("div");
+    cta.className = "signup-cta";
+    cta.innerHTML = `<span>${escapeHtml(tr("su_new"))}</span><button type="button" class="button button-signup"><span>${escapeHtml(tr("su_btn"))}</span> <span aria-hidden="true">+</span></button>`;
+    login.querySelector("button[type=submit]").after(cta);
+    const form = document.createElement("form");
+    form.className = "login-card signup-form"; form.hidden = true;
+    form.innerHTML = `<h2>${escapeHtml(tr("su_h"))}</h2><p>${escapeHtml(tr("su_help"))}</p>
+      <label for="su-name"><span>${escapeHtml(tr("su_name"))}</span><input id="su-name" name="name" type="text" autocomplete="name" maxlength="120" required></label>
+      <label for="su-business"><span>${escapeHtml(tr("su_business"))}</span><input id="su-business" name="business" type="text" autocomplete="organization" maxlength="160" required></label>
+      <label for="su-email"><span>${escapeHtml(tr("lbl_email"))}</span><input id="su-email" name="email" type="email" autocomplete="email" maxlength="190" required placeholder="name@example.com"></label>
+      <label for="su-pw"><span>${escapeHtml(tr("lbl_pw"))}</span><input id="su-pw" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label for="su-pw2"><span>${escapeHtml(tr("pt_confirm_pw"))}</span><input id="su-pw2" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="small-note">${escapeHtml(tr("pt_pw_hint"))}</p>
+      <div class="hp-field" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <button class="button button-blue" type="submit"><span>${escapeHtml(tr("su_submit"))}</span> <span aria-hidden="true">↗</span></button>
+      <p class="auth-links"><button type="button" class="link-btn" data-back>${escapeHtml(tr("pt_back_signin"))}</button></p><p class="form-status" role="status"></p>`;
+    login.after(form);
+    const toggle = (open) => { login.hidden = open; form.hidden = !open; form.querySelector(".form-status").textContent = ""; if (open) form.querySelector("input")?.focus(); };
+    cta.querySelector("button").addEventListener("click", () => toggle(true));
+    form.querySelector("[data-back]").addEventListener("click", () => toggle(false));
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const status = form.querySelector(".form-status"); const submit = form.querySelector("[type=submit]"); const data = Object.fromEntries(new FormData(form));
+      if (data.password !== data.again) { status.textContent = tr("pt_pw_mismatch"); return; }
+      submit.disabled = true; status.textContent = tr("pt_sending");
+      try { const result = await api("api/signup.php", { method: "POST", body: JSON.stringify({ name: data.name, business: data.business, email: data.email, password: data.password, website: data.website }) }); form.reset(); await show("customer", result.user); }
+      catch (error) { status.textContent = error.message; submit.disabled = false; }
+    });
+  };
+  if (!setupReset()) { setupForgot(); setupSignup(); }
 
   return { show, rerender };
 })();
