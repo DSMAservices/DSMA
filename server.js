@@ -17,7 +17,11 @@ const isProduction = process.env.NODE_ENV === "production";
 const demoMode = process.env.DEMO_MODE === "true";
 if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) { console.error("SESSION_SECRET must be set to a random value at least 32 characters long."); process.exit(1); }
 
-const dbOptions = { host: process.env.DB_HOST, port: Number(process.env.DB_PORT || 3306), user: process.env.DB_USER, password: process.env.DB_PASSWORD, database: process.env.DB_NAME, waitForConnections: true, connectionLimit: 10, charset: "utf8mb4" };
+// Hostinger names every database and database user "<account>_<name>" (for example u313970789_dsma). Some settings screens only
+// allow short values, so on Hostinger a name without an underscore ("dsma") gets the account prefix added automatically.
+const hostingerAccount = (__dirname.match(/^\/home\/([^/]+)\/domains\//) || [])[1] || "";
+const hostingerName = (value) => (hostingerAccount && value && !String(value).includes("_") ? `${hostingerAccount}_${value}` : value);
+const dbOptions = { host: process.env.DB_HOST, port: Number(process.env.DB_PORT || 3306), user: hostingerName(process.env.DB_USER), password: process.env.DB_PASSWORD, database: hostingerName(process.env.DB_NAME), waitForConnections: true, connectionLimit: 10, charset: "utf8mb4" };
 const pool = demoMode ? null : mysql.createPool(dbOptions);
 if (pool) require("./db-setup").ensureDatabase(pool).catch((error) => console.error("Database setup failed:", error.message));
 const sessionStore = demoMode ? undefined : new MySQLStore(dbOptions);
