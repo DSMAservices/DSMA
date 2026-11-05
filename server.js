@@ -152,7 +152,7 @@ app.get("/api/files.php", requireAuth(), asyncRoute(async (req, res) => {
 }));
 
 // ---- Live translation of messages (Claude API) ----
-const LANGUAGE_NAMES = { en: "English", es: "Spanish", zh: "Simplified Chinese", ar: "Arabic", fr: "French", pt: "Portuguese", vi: "Vietnamese", tr: "Turkish", ja: "Japanese" };
+const LANGUAGE_NAMES = { en: "English", es: "Spanish", zh: "Simplified Chinese", ar: "Arabic", fr: "French", pt: "Portuguese", vi: "Vietnamese", tr: "Turkish", ja: "Japanese", te: "Telugu" };
 const translationCache = new Map();
 const translateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false, message: { error: "Too many translations. Please wait a few minutes." } });
 const translateText = async (text, languageName) => {

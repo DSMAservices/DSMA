@@ -1,6 +1,24 @@
 const $ = (selector) => document.querySelector(selector);
 let customerUser = null;
 
+// The server answers in English; show the visitor's language instead when we know the message.
+const SERVER_ERRORS = [
+  [/^Email or password is incorrect\.$/, "e_login"], [/^Enter a valid email and password\.$/, "e_login_fields"],
+  [/^Invalid security token/, "e_token"], [/^You are not authorized/, "e_auth"], [/^Server error\.$/, "e_server"],
+  [/not found\.$|^Not found\.$/, "e_notfound"], [/^Complete all contact fields\.$/, "e_fields"], [/^Enter a valid email address\.$/, "e_email"],
+  [/too long\.$/, "e_long"], [/^Subject and details are required\.$/, "e_subject"], [/^An account with that email already exists\.$/, "e_exists"],
+  [/^Enter all details and a password/, "e_details8"], [/^Write a message or attach a file\.$/, "pt_err_empty"], [/^This reset link is invalid/, "e_reset_bad"],
+  [/^Your current password is not correct\.$/, "e_pw_wrong"], [/^Use at least 8 characters\.$/, "pt_pw_hint"], [/^Choose a different password/, "e_pw_same"],
+  [/^Too many /, "e_limit"], [/^Translation is unavailable/, "e_translate"], [/^You can attach up to \d+ files/, "pt_err_count"],
+  [/^"(.+)" is not an allowed file type/, "pt_err_type"], [/^"(.+)" is larger than 5 MB\./, "pt_err_size"], [/^"(.+)" is empty\./, "e_file_empty"],
+  [/^"(.+)" does not look like a real \.(\w+) file/, "e_file_fake"]
+];
+const friendlyError = (message) => {
+  if (!message) return window.t ? window.t("e_generic") : "Something went wrong. Try again.";
+  for (const [pattern, key] of SERVER_ERRORS) { const found = String(message).match(pattern); if (found) return window.t ? window.t(key, { name: found[1], ext: found[2] }) : message; }
+  return message;
+};
+
 async function api(path, options = {}) {
   if (location.protocol === "file:") throw new Error("Sign-in needs the local server. Run npm run demo, then open http://127.0.0.1:3000/portal.html.");
   const method = options.method || "GET";
@@ -12,7 +30,7 @@ async function api(path, options = {}) {
   }
   const response = await fetch(path, { ...options, method, headers, credentials: "same-origin" });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Something went wrong. Try again.");
+  if (!response.ok) throw new Error(friendlyError(data.error));
   return data;
 }
 

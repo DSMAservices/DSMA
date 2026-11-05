@@ -1060,3 +1060,9 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .pw-eye { position: absolute; top: 50%; inset-inline-end: 4px; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; transform: translateY(-50%); border: 0; border-radius: 8px; background: transparent; color: var(--ink); }
 .pw-eye:hover { background: rgba(45, 47, 69, .08); }
 .pw-eye:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
+
+/* Telugu: its own font, taller line height, and no tight letter spacing (it breaks the joined letters) */
+html[lang="te"] body { font-family: Archivo, "Noto Sans Telugu", "Telugu Sangam MN", "Nirmala UI", sans-serif; line-height: 1.7; }
+html[lang="te"] *, html[lang="te"] *::before { letter-spacing: 0 !important; word-spacing: normal !important; text-transform: none !important; }
+html[lang="te"] h1, html[lang="te"] h2, html[lang="te"] h3 { line-height: 1.35 !important; }
+html[lang="te"] .hero2 h1 { line-height: 1.3 !important; }

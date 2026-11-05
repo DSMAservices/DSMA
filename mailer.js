@@ -4,7 +4,7 @@
 let nodemailer = null;
 try { nodemailer = require("nodemailer"); } catch { /* reported by createMailer below */ }
 
-const LANGUAGE_NAMES = { en: "English", es: "Spanish", zh: "Chinese", ar: "Arabic", fr: "French", pt: "Portuguese", vi: "Vietnamese", tr: "Turkish", ja: "Japanese" };
+const LANGUAGE_NAMES = { en: "English", es: "Spanish", zh: "Chinese", ar: "Arabic", fr: "French", pt: "Portuguese", vi: "Vietnamese", tr: "Turkish", ja: "Japanese", te: "Telugu" };
 const DEFAULT_TO = "dsmaservicesbps@gmail.com";
 
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

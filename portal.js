@@ -20,7 +20,7 @@ window.PortalUI = (() => {
     return date.toLocaleString(lang(), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   };
   const size = (bytes) => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
-  const statusLabel = (status) => (state.role === "customer" ? tr("st_" + status) : status);
+  const statusLabel = (status) => tr("st_" + status);
   const clip = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l9-9a3.3 3.3 0 0 1 4.7 4.7l-9 9a1.7 1.7 0 0 1-2.4-2.4l8.4-8.4"/></svg>';
 
   // ---- Attachment picker (used by the composer and the new-request form) ----
@@ -57,7 +57,7 @@ window.PortalUI = (() => {
   const buildShell = () => {
     const customer = state.role === "customer";
     const title = customer ? tr("d_title", { name: state.user.business_name || tr("d_default_name") }) : tr("pt_team_title");
-    const filters = customer ? "" : `<div class="pt-filters" role="group" aria-label="${escapeHtml(tr("pt_filter"))}">${["all", ...STATUSES].map((key) => `<button type="button" data-filter="${key}" class="${state.filter === key ? "is-on" : ""}">${escapeHtml(key === "all" ? tr("pt_all") : key)}</button>`).join("")}</div>`;
+    const filters = customer ? "" : `<div class="pt-filters" role="group" aria-label="${escapeHtml(tr("pt_filter"))}">${["all", ...STATUSES].map((key) => `<button type="button" data-filter="${key}" class="${state.filter === key ? "is-on" : ""}">${escapeHtml(key === "all" ? tr("pt_all") : statusLabel(key))}</button>`).join("")}</div>`;
     root.innerHTML = `
       <div class="pt-top"><div><p class="portal-eyebrow">${escapeHtml(customer ? tr("d_eyebrow") : tr("pt_team_eyebrow"))}</p><h2>${escapeHtml(title)}</h2><p class="pt-help">${escapeHtml(customer ? tr("pt_help_customer") : tr("pt_help_team"))}</p></div><div class="pt-top-actions"><button class="button button-outline" type="button" data-act="password">${escapeHtml(tr("pt_change_pw"))}</button><button class="button button-outline" type="button" data-act="logout">${escapeHtml(tr("signout"))}</button></div></div>
       <div class="pt-layout is-${state.view === "empty" || state.view === "list" ? "list" : "detail"}">
@@ -130,9 +130,9 @@ window.PortalUI = (() => {
 
   const drawNewCustomer = (main) => {
     main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_new_customer"))}</h3><p class="small-note">${escapeHtml(tr("pt_new_customer_help"))}</p>
-      <div class="form-grid"><label for="pt-c-name"><span>Contact name</span><input id="pt-c-name" name="name" type="text" required></label><label for="pt-c-business"><span>Business name</span><input id="pt-c-business" name="business" type="text" required></label></div>
-      <div class="form-grid"><label for="pt-c-email"><span>Account email</span><input id="pt-c-email" name="email" type="email" required placeholder="name@example.com"></label><label for="pt-c-pass"><span>Temporary password</span><input id="pt-c-pass" name="password" type="text" required minlength="8" placeholder="At least 8 characters"></label></div>
-      <div class="button-row"><button class="button button-blue" type="submit">Create customer account</button><button class="button button-outline" type="button" data-act="back">${escapeHtml(tr("pt_cancel"))}</button></div><p class="form-status" role="status"></p></form>`;
+      <div class="form-grid"><label for="pt-c-name"><span>${escapeHtml(tr("c_name"))}</span><input id="pt-c-name" name="name" type="text" required></label><label for="pt-c-business"><span>${escapeHtml(tr("c_business"))}</span><input id="pt-c-business" name="business" type="text" required></label></div>
+      <div class="form-grid"><label for="pt-c-email"><span>${escapeHtml(tr("c_email"))}</span><input id="pt-c-email" name="email" type="email" required placeholder="name@example.com"></label><label for="pt-c-pass"><span>${escapeHtml(tr("c_pass"))}</span><input id="pt-c-pass" name="password" type="text" required minlength="8" placeholder="${escapeHtml(tr("c_pass_ph"))}"></label></div>
+      <div class="button-row"><button class="button button-blue" type="submit">${escapeHtml(tr("c_create"))}</button><button class="button button-outline" type="button" data-act="back">${escapeHtml(tr("pt_cancel"))}</button></div><p class="form-status" role="status"></p></form>`;
     const form = main.querySelector("form");
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -158,7 +158,7 @@ window.PortalUI = (() => {
     if (!current) { state.view = "empty"; return drawMain(); }
     const team = state.role === "team";
     const controls = team
-      ? `<div class="pt-controls"><label>Status<select id="pt-status">${STATUSES.map((status) => `<option ${current.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>${escapeHtml(tr("eta"))}<input id="pt-eta" type="date" value="${escapeHtml(current.eta_date ? String(current.eta_date).slice(0, 10) : "")}"></label><button class="button button-blue" type="button" data-act="save">${escapeHtml(tr("pt_save"))}</button></div>`
+      ? `<div class="pt-controls"><label>${escapeHtml(tr("pt_status"))}<select id="pt-status">${STATUSES.map((status) => `<option value="${status}" ${current.status === status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>`).join("")}</select></label><label>${escapeHtml(tr("eta"))}<input id="pt-eta" type="date" value="${escapeHtml(current.eta_date ? String(current.eta_date).slice(0, 10) : "")}"></label><button class="button button-blue" type="button" data-act="save">${escapeHtml(tr("pt_save"))}</button></div>`
       : `<p class="pt-facts"><span class="pt-pill s-${escapeHtml(current.status.replace(/\s/g, "-"))}">${escapeHtml(statusLabel(current.status))}</span><span>${escapeHtml(tr("eta"))}: <strong>${escapeHtml(formatDate(current.eta_date))}</strong></span></p>`;
     main.innerHTML = `<div class="pt-thread"><div class="pt-thread-head"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(current.subject)}</h3><p class="pt-meta">${escapeHtml(current.id)}${team ? " · " + escapeHtml(current.business_name || "") + " · " + escapeHtml(current.email || "") : ""} · ${escapeHtml(tr("submitted"))} ${escapeHtml(formatDate(current.created_at))}</p>${controls}</div>
       <div class="pt-msgs" id="pt-msgs" tabindex="0"><p class="small-note">${escapeHtml(tr("pt_loading"))}</p></div>
