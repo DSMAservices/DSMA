@@ -1033,3 +1033,13 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 /* Windy awning: script.js draws the scallops on a canvas and simulates the wind; this is the still version */
 .site-header.awning-live::after { display: none; }
 .awning-canvas { position: absolute; z-index: 1; top: 100%; left: 0; width: 100%; height: 24px; pointer-events: none; }
+
+/* Full name beside the logo */
+.brand-name { max-width: 15ch; margin-inline-end: 4px; color: var(--ink); font-size: clamp(.8rem, 1.05vw, 1rem); font-weight: 800; line-height: 1.15; letter-spacing: -.01em; text-wrap: balance; }
+.footer-wordmark { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 2.4vw, 30px); flex-wrap: wrap; }
+.footer-name { max-width: 14ch; color: #ece9da; font-size: clamp(1.25rem, 2.2vw, 1.9rem); font-weight: 800; line-height: 1.12; letter-spacing: -.02em; text-align: start; text-transform: none; text-wrap: balance; }
+@media (max-width: 1100px) { .brand-name { max-width: 12ch; } }
+@media (max-width: 760px) { .brand-name { max-width: none; flex: 1; min-width: 0; font-size: .74rem; } .site-header .header-descriptor { display: none; } .footer-wordmark { flex-direction: column; } .footer-name { max-width: none; text-align: center; } }
+.site-nav a { white-space: nowrap; }
+@media (max-width: 1240px) { .site-header .header-descriptor { display: none; } .brand-name { max-width: 17ch; font-size: .92rem; } }
+.footer-wordmark .footer-name { color: #ece9da; }
