@@ -1029,3 +1029,17 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 
 /* Small top rail on the header awning */
 .site-header::after { height: 22px; background: linear-gradient(var(--ink), var(--ink)) left top / 100% 2px no-repeat, var(--awning) repeat-x left 2px / 93px 20px; }
+
+/* An occasional gust of wind flaps the header awning */
+@keyframes awning-gust {
+  0%, 68%, 100% { transform: none; }
+  70% { transform: perspective(260px) rotateX(-14deg) skewX(-1.2deg); }
+  73% { transform: perspective(260px) rotateX(9deg) skewX(1.4deg); }
+  76% { transform: perspective(260px) rotateX(-10deg) skewX(-1deg); }
+  79% { transform: perspective(260px) rotateX(6deg) skewX(.8deg); }
+  83% { transform: perspective(260px) rotateX(-4deg) skewX(-.5deg); }
+  88% { transform: perspective(260px) rotateX(2deg) skewX(.2deg); }
+  94% { transform: perspective(260px) rotateX(-.8deg); }
+}
+.site-header::after { transform-origin: 50% 0; animation: awning-gust 14s ease-in-out 3s infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .site-header::after { animation: none; } }
