@@ -101,6 +101,7 @@ if (footerMark && "IntersectionObserver" in window) {
     return now + (Math.random() < .1 ? 3 + Math.random() * 2.5 : .5 + Math.random() * 1.7);
   };
   const WIND = calm ? 0 : 1;
+  const CALM = .8; // how much of the flap you see: 1 = full motion, lower = more subtle (the wind itself is unchanged)
   const STIFF = 70, DAMP = 2.4, COUPLE = 55, PUSH = 60;
   const step = (dt, now) => {
     for (let i = 0; i < count; i++) {
@@ -123,7 +124,7 @@ if (footerMark && "IntersectionObserver" in window) {
   const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, width, HEIGHT);
     for (let i = 0; i < count; i++) {
-      const angle = Math.max(-.35, Math.min(1.25, swing[i])), lean = Math.max(-.7, Math.min(.7, sway[i]));
+      const angle = Math.max(-.35, Math.min(1.25, swing[i] * CALM)), lean = Math.max(-.7, Math.min(.7, sway[i] * CALM));
       ctx.save(); ctx.translate(i * SW, RAIL); ctx.transform(1, 0, Math.sin(lean), Math.cos(angle), 0, 0);
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(SW, 0); ctx.lineTo(SW, STRAIGHT); ctx.arc(SW / 2, STRAIGHT, RADIUS, 0, Math.PI); ctx.closePath();
       const tone = shown[i][i % 2]; ctx.fillStyle = `rgb(${tone[0] | 0},${tone[1] | 0},${tone[2] | 0})`; ctx.fill();
