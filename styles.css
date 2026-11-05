@@ -287,7 +287,7 @@ input:focus, textarea:focus, select:focus { border-bottom-width: 3px; }
 :root { --awning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='24' viewBox='0 0 112 24'%3E%3Cpath d='M0 0h28v10a14 14 0 0 1-28 0z' fill='%233e4059'/%3E%3Cpath d='M28 0h28v10a14 14 0 0 1-28 0z' fill='%23d27f65'/%3E%3Cpath d='M56 0h28v10a14 14 0 0 1-28 0z' fill='%233e4059'/%3E%3Cpath d='M84 0h28v10a14 14 0 0 1-28 0z' fill='%23d27f65'/%3E%3C/svg%3E"); }
 .scroll-meter { background: var(--orange); }
 .site-header { border-bottom-color: var(--ink); }
-.site-header::after, .offer-section::before, .contact-section.page-grid::before, .about-section::before { position: absolute; top: 100%; left: 0; width: 100%; height: 24px; content: ""; background: var(--awning) repeat-x left top / 112px 24px; pointer-events: none; }
+.site-header::after, .offer-section::before, .contact-section.page-grid::before, .about-section::before { position: absolute; top: 100%; left: 0; width: 100%; height: 30px; content: ""; background: var(--awning) repeat-x left top / 140px 30px; pointer-events: none; }
 .offer-section, .about-section, .contact-section.page-grid { position: relative; }
 .offer-section { border-top: 0; padding-top: clamp(66px, 6vw, 94px); }
 .offer-section::before { top: 0; left: 50%; width: 100vw; transform: translateX(-50%); }
@@ -403,7 +403,7 @@ html[lang="zh"] body { font-family: Archivo, "PingFang SC", "Microsoft YaHei", "
 .team-placeholder p { font-size: 1rem; color: #ece9da; }
 .contact-form.order-slip { -webkit-mask: none; mask: none; padding: 28px; border-radius: 8px; background: var(--white); box-shadow: none; }
 .slip-head { border-bottom: 1px solid #c9ced1; font-size: 1.05rem; letter-spacing: 0; text-transform: none; }
-.site-header::after, .offer-section::before, .contact-section.page-grid::before, .about-section::before { height: 16px; background-size: 74px 16px; }
+.site-header::after, .offer-section::before, .contact-section.page-grid::before, .about-section::before { height: 20px; background-size: 93px 20px; }
 .open-sign, .open-pill, .doormat { display: none; }
 .contact-section.page-grid { padding-top: clamp(64px, 6vw, 90px); }
 
