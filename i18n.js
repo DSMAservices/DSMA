@@ -15,6 +15,7 @@ window.DSMA_I18N = {
   ],
   strings: {
     en: {
+      hero_team: "Meet the team",
       nav_start: "Start your own", nav_playbook: "Playbook", title_start: "Start your own chapter — DSMA",
       cont_eyebrow: "For student leaders", cont_h: "How can you continue this?",
       cont_p: "DSMA was started by students, and it is built so that other students can repeat it. Bring this to your own community and help the businesses around you.",
