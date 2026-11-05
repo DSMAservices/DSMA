@@ -34,3 +34,7 @@ Each request is a conversation between the business and the DSMA team. Either si
 ## Message translation
 
 The Translate button works with no setup, using the free MyMemory service (it detects the source language and translates into the language picked on the site). Optional settings: `TRANSLATE_EMAIL` raises its daily limit from 5,000 to 50,000 characters (it falls back to `CONTACT_TO`); `ANTHROPIC_API_KEY` switches to Claude for higher quality, with the free engine as a backup.
+
+## Passwords
+
+Both portals have **Change password** (inside the signed-in workspace) and **Forgot password?** (on each sign-in form). A reset link is emailed and works once, for one hour. Sending it needs the email settings (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`). Links point at `SITE_URL` if you set it (for example `https://yourdomain.com`); otherwise they use the `*.hostingersite.com` address the request came in on. Reset tokens live in the `password_resets` table, created automatically on start.

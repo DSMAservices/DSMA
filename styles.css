@@ -1044,3 +1044,12 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 @media (max-width: 1240px) { .site-header .header-descriptor { display: none; } .brand-name { max-width: 17ch; font-size: .92rem; } }
 .footer-wordmark .footer-name { color: #ece9da; }
 .portal-main.pt-active { padding-top: clamp(52px, 5vw, 68px); }
+
+/* Password screens */
+.pt-top-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.auth-links { margin: 14px 0 0 !important; }
+.link-btn { padding: 0; border: 0; background: none; color: var(--blue); font: inherit; font-size: .9rem; font-weight: 800; text-decoration: underline; }
+.forgot-form[hidden], .login-card[hidden] { display: none !important; }
+.reset-panel { max-width: 480px; display: grid; gap: 14px; }
+.reset-panel > p { margin: 0; }
+@media (max-width: 860px) { .pt-top-actions { justify-content: flex-start; } }

@@ -59,7 +59,7 @@ window.PortalUI = (() => {
     const title = customer ? tr("d_title", { name: state.user.business_name || tr("d_default_name") }) : tr("pt_team_title");
     const filters = customer ? "" : `<div class="pt-filters" role="group" aria-label="${escapeHtml(tr("pt_filter"))}">${["all", ...STATUSES].map((key) => `<button type="button" data-filter="${key}" class="${state.filter === key ? "is-on" : ""}">${escapeHtml(key === "all" ? tr("pt_all") : key)}</button>`).join("")}</div>`;
     root.innerHTML = `
-      <div class="pt-top"><div><p class="portal-eyebrow">${escapeHtml(customer ? tr("d_eyebrow") : tr("pt_team_eyebrow"))}</p><h2>${escapeHtml(title)}</h2><p class="pt-help">${escapeHtml(customer ? tr("pt_help_customer") : tr("pt_help_team"))}</p></div><button class="button button-outline" type="button" data-act="logout">${escapeHtml(tr("signout"))}</button></div>
+      <div class="pt-top"><div><p class="portal-eyebrow">${escapeHtml(customer ? tr("d_eyebrow") : tr("pt_team_eyebrow"))}</p><h2>${escapeHtml(title)}</h2><p class="pt-help">${escapeHtml(customer ? tr("pt_help_customer") : tr("pt_help_team"))}</p></div><div class="pt-top-actions"><button class="button button-outline" type="button" data-act="password">${escapeHtml(tr("pt_change_pw"))}</button><button class="button button-outline" type="button" data-act="logout">${escapeHtml(tr("signout"))}</button></div></div>
       <div class="pt-layout is-${state.view === "empty" || state.view === "list" ? "list" : "detail"}">
         <aside class="pt-side"><div class="pt-side-head"><button class="button button-blue" type="button" data-act="${customer ? "new" : "customer"}">${escapeHtml(customer ? tr("pt_new_request") : tr("pt_new_customer"))} <span aria-hidden="true">+</span></button></div>${filters}<ul class="pt-list" id="pt-list"></ul></aside>
         <section class="pt-main" id="pt-main" aria-live="polite"></section>
@@ -85,6 +85,7 @@ window.PortalUI = (() => {
     if (!main) return;
     if (state.view === "new") return drawNewRequest(main);
     if (state.view === "customer") return drawNewCustomer(main);
+    if (state.view === "password") return drawPassword(main);
     if (state.view === "thread" && state.selected) return drawThread(main);
     main.innerHTML = `<div class="pt-empty"><h3>${escapeHtml(state.role === "customer" ? tr("pt_empty_h_customer") : tr("pt_empty_h_team"))}</h3><p>${escapeHtml(state.role === "customer" ? tr("pt_empty_p_customer") : tr("pt_empty_p_team"))}</p></div>`;
   };
@@ -106,6 +107,23 @@ window.PortalUI = (() => {
         const result = await api("api/tickets.php", { method: "POST", body: JSON.stringify({ subject: data.subject, details: data.details, attachments }) });
         await loadTickets(); await openTicket(result.id);
       } catch (error) { status.textContent = error.message; submit.disabled = false; }
+    });
+    form.querySelector("input")?.focus();
+  };
+
+  const passwordFields = (current) => `${current ? `<label for="pt-pw-current"><span>${escapeHtml(tr("pt_current_pw"))}</span><input id="pt-pw-current" name="current" type="password" autocomplete="current-password" required></label>` : ""}
+      <label for="pt-pw-new"><span>${escapeHtml(tr("pt_new_pw"))}</span><input id="pt-pw-new" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label for="pt-pw-again"><span>${escapeHtml(tr("pt_confirm_pw"))}</span><input id="pt-pw-again" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="small-note">${escapeHtml(tr("pt_pw_hint"))}</p>`;
+  const drawPassword = (main) => {
+    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_change_pw"))}</h3>${passwordFields(true)}
+      <div class="button-row"><button class="button button-blue" type="submit">${escapeHtml(tr("pt_save_pw"))}</button><button class="button button-outline" type="button" data-act="back">${escapeHtml(tr("pt_cancel"))}</button></div><p class="form-status" role="status"></p></form>`;
+    const form = main.querySelector("form");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const status = form.querySelector(".form-status"); const data = Object.fromEntries(new FormData(form));
+      if (data.password !== data.again) { status.textContent = tr("pt_pw_mismatch"); return; }
+      try { await api("api/password.php?action=change", { method: "POST", body: JSON.stringify({ current: data.current, password: data.password }) }); form.reset(); status.textContent = tr("pt_pw_changed"); } catch (error) { status.textContent = error.message; }
     });
     form.querySelector("input")?.focus();
   };
@@ -215,6 +233,7 @@ window.PortalUI = (() => {
       if (act === "logout") return logout();
       if (act === "new") { state.selected = null; return setView("new"); }
       if (act === "customer") { state.selected = null; return setView("customer"); }
+      if (act === "password") { state.selected = null; return setView("password"); }
       if (act === "back") { state.view = "empty"; state.selected = null; return setView("empty"); }
       if (act === "save") {
         const current = ticket();
@@ -253,6 +272,53 @@ window.PortalUI = (() => {
   };
 
   const rerender = () => { if (!state.role || !root) return; const draft = $("#pt-body", root)?.value; buildShell(); const body = $("#pt-body", root); if (body && draft) body.value = draft; };
+
+
+  // ---- Signed-out screens: "Forgot password?" on both sign-in forms, and the page the emailed link opens ----
+  const setupForgot = () => {
+    [["customer", "#customer-login-form"], ["team", "#login-form"]].forEach(([role, selector]) => {
+      const login = $(selector);
+      if (!login) return;
+      const link = document.createElement("p");
+      link.className = "auth-links"; link.innerHTML = `<button type="button" class="link-btn">${escapeHtml(tr("pt_forgot"))}</button>`;
+      login.appendChild(link);
+      const forgot = document.createElement("form");
+      forgot.className = "login-card forgot-form"; forgot.hidden = true;
+      forgot.innerHTML = `<h2>${escapeHtml(tr("pt_forgot_h"))}</h2><p>${escapeHtml(tr("pt_forgot_help"))}</p><label for="forgot-${role}"><span>${escapeHtml(tr("lbl_email"))}</span><input id="forgot-${role}" name="email" type="email" autocomplete="username" required placeholder="name@example.com"></label><button class="button button-blue" type="submit"><span>${escapeHtml(tr("pt_send_link"))}</span> <span aria-hidden="true">↗</span></button><p class="auth-links"><button type="button" class="link-btn" data-back>${escapeHtml(tr("pt_back_signin"))}</button></p><p class="form-status" role="status"></p>`;
+      login.after(forgot);
+      const toggle = (open) => { login.hidden = open; forgot.hidden = !open; forgot.querySelector(".form-status").textContent = ""; };
+      link.querySelector("button").addEventListener("click", () => toggle(true));
+      forgot.querySelector("[data-back]").addEventListener("click", () => toggle(false));
+      forgot.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const status = forgot.querySelector(".form-status"); const submit = forgot.querySelector("[type=submit]"); submit.disabled = true;
+        try { await api("api/password.php?action=forgot", { method: "POST", body: JSON.stringify({ email: forgot.email.value, role }) }); status.textContent = tr("pt_forgot_sent"); forgot.reset(); } catch (error) { status.textContent = error.message; }
+        submit.disabled = false;
+      });
+    });
+  };
+  const setupReset = () => {
+    const params = new URLSearchParams(window.location.search); const token = params.get("reset");
+    if (!token) return false;
+    const holder = $(".portal-content"); if (!holder) return false;
+    $(".portal-tabs")?.classList.add("is-hidden"); document.querySelectorAll(".portal-panel").forEach((panel) => panel.classList.add("is-hidden"));
+    const panel = document.createElement("form");
+    panel.className = "login-card reset-panel";
+    panel.innerHTML = `<h2>${escapeHtml(tr("pt_reset_h"))}</h2><p>${escapeHtml(tr("pt_reset_help"))}</p>${passwordFields(false)}<button class="button button-blue" type="submit"><span>${escapeHtml(tr("pt_save_pw"))}</span> <span aria-hidden="true">↗</span></button><p class="form-status" role="status"></p>`;
+    holder.prepend(panel);
+    panel.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const status = panel.querySelector(".form-status"); const data = Object.fromEntries(new FormData(panel));
+      if (data.password !== data.again) { status.textContent = tr("pt_pw_mismatch"); return; }
+      try {
+        await api("api/password.php?action=reset", { method: "POST", body: JSON.stringify({ token, password: data.password }) });
+        panel.innerHTML = `<h2>${escapeHtml(tr("pt_reset_done_h"))}</h2><p>${escapeHtml(tr("pt_reset_done"))}</p><a class="button button-blue" href="portal.html${params.get("role") === "team" ? "#team" : ""}"><span>${escapeHtml(tr("signin"))}</span> <span aria-hidden="true">↗</span></a>`;
+        history.replaceState(null, "", "portal.html");
+      } catch (error) { status.textContent = error.message; }
+    });
+    return true;
+  };
+  if (!setupReset()) setupForgot();
 
   return { show, rerender };
 })();

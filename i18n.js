@@ -15,6 +15,11 @@ window.DSMA_I18N = {
   ],
   strings: {
     en: {
+      pt_change_pw: "Change password", pt_current_pw: "Current password", pt_new_pw: "New password", pt_confirm_pw: "Type the new password again",
+      pt_pw_hint: "Use at least 8 characters.", pt_pw_mismatch: "The two new passwords do not match.", pt_pw_changed: "Your password has been changed.", pt_save_pw: "Save password",
+      pt_forgot: "Forgot password?", pt_forgot_h: "Forgot your password?", pt_forgot_help: "Enter your email address and we will send you a link to choose a new one.",
+      pt_send_link: "Send reset link", pt_back_signin: "Back to sign in", pt_forgot_sent: "If that email has an account, a reset link is on its way. It works for one hour.",
+      pt_reset_h: "Choose a new password", pt_reset_help: "Pick a new password for your account.", pt_reset_done_h: "Password updated", pt_reset_done: "Your password has been changed. You can sign in now.",
       cont_tag: "For students", cont_sub: "Start a DSMA chapter in your own school or community.",
       pt_translate: "Translate", pt_translating: "Translating…", pt_show_original: "Show original", pt_translated_to: "Translated to {language}",
       pt_new_request: "New request", pt_new_customer: "New customer", pt_back: "All requests", pt_cancel: "Cancel",

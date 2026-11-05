@@ -274,6 +274,75 @@ app.post("/api/contact.php", contactLimiter, requireCsrf, asyncRoute(async (req,
   send(res, { ok: true }, 201);
 }));
 
+// ---- Passwords: change while signed in, and "forgot password" by email ----
+const MIN_PASSWORD = 8;
+const demoResets = [];
+const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
+// Reset links must point at this site. SITE_URL wins; otherwise only recognised hosts are used, so a forged Host header
+// cannot make a reset email link to somebody else's website.
+const siteUrl = (req) => {
+  const configured = String(process.env.SITE_URL || "").trim().replace(/\/+$/, "");
+  if (configured) return configured;
+  const host = String(req.get("host") || "").toLowerCase();
+  return /^([a-z0-9-]+\.)*hostingersite\.com$/.test(host) || /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? `${req.protocol}://${host}` : "";
+};
+const passwordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, message: { error: "Too many attempts. Please wait a few minutes and try again." } });
+const checkNewPassword = (password, current) => {
+  if (password.length < MIN_PASSWORD) return `Use at least ${MIN_PASSWORD} characters.`;
+  if (password.length > 200) return "That password is too long.";
+  if (current !== undefined && password === current) return "Choose a different password from your current one.";
+  return "";
+};
+const setPassword = async (userId, password) => {
+  if (demoMode) { const account = demoAccounts.find((item) => item.id === userId); if (account) account.password_hash = await bcrypt.hash(password, 10); return; }
+  await pool.execute("UPDATE users SET password_hash = ? WHERE id = ?", [await bcrypt.hash(password, 12), userId]);
+};
+app.post("/api/password.php", passwordLimiter, requireCsrf, asyncRoute(async (req, res) => {
+  const action = req.query.action;
+  if (action === "change") {
+    if (!req.session.user) return send(res, { error: "You are not authorized for this action." }, 401);
+    const current = String(req.body.current || ""); const password = String(req.body.password || "");
+    let hash;
+    if (demoMode) hash = (demoAccounts.find((item) => item.id === req.session.user.id) || {}).password_hash;
+    else { const [rows] = await pool.execute("SELECT password_hash FROM users WHERE id = ? AND active = 1", [req.session.user.id]); hash = rows[0] && rows[0].password_hash; }
+    if (!hash || !(await bcrypt.compare(current, hash))) return send(res, { error: "Your current password is not correct." }, 403);
+    const problem = checkNewPassword(password, current);
+    if (problem) return send(res, { error: problem }, 422);
+    await setPassword(req.session.user.id, password);
+    return send(res, { ok: true });
+  }
+  if (action === "forgot") {
+    const email = cleanEmail(req.body.email); const role = req.body.role === "team" ? "team" : "customer";
+    const reply = { ok: true };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 190) return send(res, reply); // always the same answer, so nobody can probe which emails exist
+    let account;
+    if (demoMode) account = demoAccounts.find((item) => item.email === email && item.role === role);
+    else { const [rows] = await pool.execute("SELECT id, name, email FROM users WHERE email = ? AND role = ? AND active = 1 LIMIT 1", [email, role]); account = rows[0]; }
+    if (!account) return send(res, reply);
+    const token = crypto.randomBytes(32).toString("hex");
+    if (demoMode) { demoResets.push({ user_id: account.id, token_hash: hashToken(token), expires: Date.now() + 3600000, used: false }); }
+    else { await pool.execute("DELETE FROM password_resets WHERE user_id = ?", [account.id]); await pool.execute("INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))", [account.id, hashToken(token)]); }
+    const base = siteUrl(req); const link = `${base}/portal.html?reset=${token}&role=${role}`;
+    if (demoMode) { console.log(`[demo] password reset link for ${email}: ${link}`); reply.demoLink = link; return send(res, reply); }
+    if (!base || !mailer.enabled) { console.error("Password reset requested but no email could be sent: " + (!base ? "set SITE_URL." : "set SMTP_HOST, SMTP_USER and SMTP_PASS.")); return send(res, reply); }
+    try { await mailer.sendReset({ to: account.email, name: account.name, link }); } catch (error) { console.error("Password reset email failed:", error.message); }
+    return send(res, reply);
+  }
+  if (action === "reset") {
+    const token = String(req.body.token || ""); const password = String(req.body.password || "");
+    if (!/^[a-f0-9]{64}$/.test(token)) return send(res, { error: "This reset link is invalid or has expired." }, 400);
+    const problem = checkNewPassword(password);
+    if (problem) return send(res, { error: problem }, 422);
+    let userId;
+    if (demoMode) { const found = demoResets.find((item) => item.token_hash === hashToken(token) && !item.used && item.expires > Date.now()); if (found) { userId = found.user_id; found.used = true; } }
+    else { const [rows] = await pool.execute("SELECT user_id FROM password_resets WHERE token_hash = ? AND used = 0 AND expires_at > NOW()", [hashToken(token)]); if (rows[0]) { userId = rows[0].user_id; await pool.execute("DELETE FROM password_resets WHERE user_id = ?", [userId]); } }
+    if (!userId) return send(res, { error: "This reset link is invalid or has expired." }, 400);
+    await setPassword(userId, password);
+    return send(res, { ok: true });
+  }
+  send(res, { error: "Unknown action." }, 404);
+}));
+
 app.use(["/api", "/database", "/tools"], (req, res) => res.status(404).json({ error: "Not found." }));
 app.use(/^\/(server|mailer|db-setup)\.js$|^\/package(-lock)?\.json$|^\/(README|HOSTINGER_DEPLOY)\.md$|^\/node_modules\//i, (req, res) => res.status(404).json({ error: "Not found." }));
 app.use(express.static(root, { extensions: ["html"], index: "index.html" }));

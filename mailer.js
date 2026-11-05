@@ -38,11 +38,25 @@ function buildContactEmail({ name, email, message, language, receivedAt }) {
   return { subject, text, html };
 }
 
+function buildResetEmail({ name, link }) {
+  const subject = "Reset your DSMA portal password";
+  const who = oneLine(name) || "there";
+  const text = [`Hi ${who},`, "", "Someone asked to reset the password for your DSMA portal account. Open this link within one hour to choose a new password:", "", link, "", "If you did not ask for this, you can ignore this email. Your password will not change."].join("\n");
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2d2f45;max-width:560px">
+<h2 style="margin:0 0 12px">Reset your DSMA portal password</h2>
+<p>Hi ${escapeHtml(who)},</p>
+<p>Someone asked to reset the password for your DSMA portal account. The link works for one hour.</p>
+<p><a href="${escapeHtml(link)}" style="display:inline-block;background:#3e4059;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Choose a new password</a></p>
+<p style="color:#55556a">If the button does not work, copy this link into your browser:<br>${escapeHtml(link)}</p>
+<p style="color:#55556a">If you did not ask for this, you can ignore this email. Your password will not change.</p></div>`;
+  return { subject, text, html };
+}
+
 function createMailer(env = process.env) {
   const host = env.SMTP_HOST, user = env.SMTP_USER, pass = env.SMTP_PASS;
   const to = oneLine(env.CONTACT_TO || DEFAULT_TO);
-  if (!host || !user || !pass) return { enabled: false, to, sendContact: async () => ({ skipped: true }) };
-  if (!nodemailer) { console.error("Contact emails are OFF: the nodemailer package is not installed. Run npm install."); return { enabled: false, to, sendContact: async () => ({ skipped: true }) }; }
+  if (!host || !user || !pass) return { enabled: false, to, sendContact: async () => ({ skipped: true }), sendReset: async () => ({ skipped: true }) };
+  if (!nodemailer) { console.error("Contact emails are OFF: the nodemailer package is not installed. Run npm install."); return { enabled: false, to, sendContact: async () => ({ skipped: true }), sendReset: async () => ({ skipped: true }) }; }
   const port = Number(env.SMTP_PORT || 465);
   const transporter = nodemailer.createTransport({
     host, port,
@@ -63,8 +77,13 @@ function createMailer(env = process.env) {
         subject, text, html
       });
       return { sent: true };
+    },
+    async sendReset({ to: recipient, name, link }) {
+      const { subject, text, html } = buildResetEmail({ name, link });
+      await transporter.sendMail({ from: { name: "DSMA portal", address: from }, to: oneLine(recipient), subject, text, html });
+      return { sent: true };
     }
   };
 }
 
-module.exports = { buildContactEmail, createMailer };
+module.exports = { buildContactEmail, buildResetEmail, createMailer };
