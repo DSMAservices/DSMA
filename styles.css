@@ -1028,4 +1028,4 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .start-strip .start-redirect { grid-column: 1 / -1; }
 
 /* Small top rail on the header awning */
-.site-header::after { height: 25px; background: linear-gradient(var(--ink), var(--ink)) left top / 100% 5px no-repeat, var(--awning) repeat-x left 5px / 93px 20px; }
+.site-header::after { height: 22px; background: linear-gradient(var(--ink), var(--ink)) left top / 100% 2px no-repeat, var(--awning) repeat-x left 2px / 93px 20px; }
