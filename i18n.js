@@ -15,6 +15,7 @@ window.DSMA_I18N = {
   ],
   strings: {
     en: {
+      cont_tag: "For students", cont_sub: "Start a DSMA chapter in your own school or community.",
       pt_translate: "Translate", pt_translating: "Translating…", pt_show_original: "Show original", pt_translated_to: "Translated to {language}",
       pt_new_request: "New request", pt_new_customer: "New customer", pt_back: "All requests", pt_cancel: "Cancel",
       pt_team_eyebrow: "Team workspace", pt_team_title: "Request inbox", pt_filter: "Filter by status", pt_all: "All",
@@ -32,7 +33,7 @@ window.DSMA_I18N = {
       pt_new_customer_help: "Set up an account, then share the email and temporary password securely with the business.",
       pt_customer_created: "Customer account created for {email}. Share the temporary password securely.",
       hero_team: "Meet the team",
-      nav_start: "Start your own", nav_playbook: "Playbook", title_start: "Start your own chapter — DSMA",
+      nav_start: "For students", nav_playbook: "Playbook", title_start: "Start your own chapter — DSMA",
       cont_eyebrow: "For student leaders", cont_h: "How can you continue this?",
       cont_p: "DSMA was started by students, and it is built so that other students can repeat it. Bring this to your own community and help the businesses around you.",
       cont_btn: "Start your own chapter",

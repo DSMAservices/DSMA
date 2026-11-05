@@ -1014,3 +1014,15 @@ html[dir="rtl"] .step-cards .step-num { right: auto; left: auto; }
 .pt-tr-btn { padding: 0; border: 0; background: none; color: var(--blue); font: inherit; font-size: .8rem; font-weight: 800; text-decoration: underline; }
 .pt-tr-btn:disabled { opacity: .6; }
 .pt-tr-out { margin: 6px 0 0 !important; padding: 8px 10px; border-inline-start: 4px solid var(--orange); background: rgba(255, 255, 255, .7); font-style: italic; }
+
+/* Compact "for students" banner under the hero */
+.start-strip { padding-block: clamp(18px, 2vw, 28px) 0; }
+.start-redirect.start-compact { justify-content: flex-start; gap: clamp(12px, 2vw, 22px); padding: 12px 18px; border-width: 2px; border-radius: 12px; box-shadow: 5px 5px 0 var(--orange); }
+.start-compact .start-tag { flex: none; padding: 4px 11px; border-radius: 999px; background: var(--orange); color: var(--ink); font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.start-compact .start-text { display: grid; gap: 1px; min-width: 0; margin-inline-end: auto; }
+.start-compact .start-text strong { font-size: clamp(1.05rem, 1.7vw, 1.3rem); letter-spacing: -.02em; line-height: 1.2; }
+.start-compact .start-text span { color: var(--muted); font-size: .88rem; }
+.start-compact:hover .start-text span { color: #ece9da; }
+.start-compact .start-arrow { font-size: 1.5rem; }
+@media (max-width: 560px) { .start-redirect.start-compact { flex-wrap: wrap; } .start-compact .start-text { flex-basis: 100%; order: 3; } }
+.start-strip .start-redirect { grid-column: 1 / -1; }
