@@ -64,3 +64,44 @@ const footerMark = $(".footer-wordmark");
 if (footerMark && "IntersectionObserver" in window) {
   new IntersectionObserver((entries, observer) => { if (entries[0].isIntersecting) { footerMark.classList.add("is-visible"); observer.disconnect(); } }, { threshold: .4 }).observe(footerMark);
 }
+
+
+// Windy awning: the header awning is built from segments. Gusts arrive at random, from the left, the right or
+// all along it, at random strengths, and each segment flaps a moment after its neighbour so the wind ripples through.
+(() => {
+  const header = document.querySelector(".site-header");
+  if (!header || window.matchMedia("(prefers-reduced-motion: reduce)").matches || !header.animate) return;
+  const COUNT = 10;
+  const rail = document.createElement("div");
+  rail.className = "awning-rail"; rail.setAttribute("aria-hidden", "true");
+  const segments = Array.from({ length: COUNT }, () => rail.appendChild(document.createElement("div"))).map((node) => { node.className = "awning-seg"; return node; });
+  header.appendChild(rail); header.classList.add("awning-live");
+  const align = () => { const left = rail.getBoundingClientRect().left; segments.forEach((node) => { node.style.backgroundPositionX = `${left - node.getBoundingClientRect().left}px`; }); };
+  align(); window.addEventListener("resize", align);
+
+  const SWINGS = [[.12, -14], [.28, 9], [.45, -10], [.62, 6], [.78, -4], [.91, 2], [1, 0]];
+  const busyUntil = segments.map(() => 0);
+  const gust = () => {
+    const roll = Math.random();
+    const centre = roll < .35 ? Math.random() * .2 : roll < .7 ? .8 + Math.random() * .2 : Math.random();
+    const spread = roll < .7 ? .16 + Math.random() * .12 : .35 + Math.random() * .3;
+    const strength = Math.random() < .1 ? 1 + Math.random() * .4 : .25 + Math.random() * .75;
+    const sign = Math.random() < .5 ? -1 : 1;
+    const duration = 1500 + Math.random() * 1500;
+    const now = performance.now();
+    segments.forEach((node, index) => {
+      const place = (index + .5) / COUNT;
+      const weight = Math.exp(-(((place - centre) / spread) ** 2)) * strength;
+      if (weight < .06 || busyUntil[index] > now) return;
+      const delay = Math.abs(place - centre) * 700;
+      busyUntil[index] = now + delay + duration;
+      node.animate(
+        [{ offset: 0, transform: "none" }, ...SWINGS.map(([offset, angle]) => ({ offset, transform: `perspective(260px) rotateX(${(angle * sign * weight).toFixed(2)}deg) skewX(${(angle * sign * weight * .09).toFixed(2)}deg)` }))],
+        { duration, delay, easing: "ease-in-out" }
+      );
+    });
+    // Nearly constant wind: a new gust every half second or two, with the odd calm spell.
+    setTimeout(gust, Math.random() < .12 ? 3500 + Math.random() * 3000 : 350 + Math.random() * 1500);
+  };
+  setTimeout(gust, 1200);
+})();
