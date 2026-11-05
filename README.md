@@ -30,3 +30,7 @@ The design loads Archivo from Google Fonts. The CSS includes system font fallbac
 ## Portal messages and attachments
 
 Each request is a conversation between the business and the DSMA team. Either side can attach up to 4 files per message (images, PDF, Word, Excel, PowerPoint, CSV or text, 5 MB each). Files are stored in the database (`ticket_files`), checked on upload, and only the business that owns the request and the DSMA team can open them. The new tables are created automatically on the next start.
+
+## Message translation
+
+The Translate button works with no setup, using the free MyMemory service (it detects the source language and translates into the language picked on the site). Optional settings: `TRANSLATE_EMAIL` raises its daily limit from 5,000 to 50,000 characters (it falls back to `CONTACT_TO`); `ANTHROPIC_API_KEY` switches to Claude for higher quality, with the free engine as a backup.

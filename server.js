@@ -48,7 +48,7 @@ const requireCsrf = (req, res, next) => { const expected = req.session.csrf || "
 const requireAuth = (role) => (req, res, next) => { if (!req.session.user || (role && req.session.user.role !== role)) return send(res, { error: "You are not authorized for this action." }, 401); next(); };
 const asyncRoute = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 
-app.get("/api/auth.php", (req, res) => { if (req.query.action === "csrf") return send(res, { csrf: csrfToken(req) }); if (req.query.action === "me") return send(res, { user: req.session.user || null, demoMode, translate: Boolean(process.env.ANTHROPIC_API_KEY) }); return send(res, { error: "Unknown authentication action." }, 404); });
+app.get("/api/auth.php", (req, res) => { if (req.query.action === "csrf") return send(res, { csrf: csrfToken(req) }); if (req.query.action === "me") return send(res, { user: req.session.user || null, demoMode, translate: true }); return send(res, { error: "Unknown authentication action." }, 404); });
 app.post("/api/auth.php", authLimiter, asyncRoute(async (req, res, next) => {
   if (req.query.action === "logout") return requireCsrf(req, res, () => req.session.destroy(() => send(res, { ok: true })));
   if (req.query.action !== "login") return send(res, { error: "Unknown authentication action." }, 404);
@@ -167,8 +167,42 @@ const translateText = async (text, languageName) => {
   if (!out) throw new Error("Translation service returned nothing");
   return out;
 };
+// Free engine (MyMemory): no key needed, detects the source language, 500 characters per request.
+// Setting TRANSLATE_EMAIL (or CONTACT_TO) raises its daily allowance from 5,000 to 50,000 characters.
+const MYMEMORY_CODES = { zh: "zh-CN" };
+const chunkText = (text, limit = 450) => {
+  const pieces = text.match(/[^.!?\n]+[.!?]*\s*|\n+/g) || [text]; const chunks = []; let current = "";
+  for (let piece of pieces) {
+    while (piece.length > limit) { if (current) { chunks.push(current); current = ""; } chunks.push(piece.slice(0, limit)); piece = piece.slice(limit); }
+    if ((current + piece).length > limit) { chunks.push(current); current = piece; } else current += piece;
+  }
+  if (current) chunks.push(current);
+  return chunks.filter((chunk) => chunk.trim());
+};
+const translateFree = async (text, target) => {
+  const email = process.env.TRANSLATE_EMAIL || process.env.CONTACT_TO || "";
+  const out = [];
+  for (const chunk of text.split(/(\n+)/)) {
+    if (!chunk.trim()) { out.push(chunk); continue; }
+    for (const part of chunkText(chunk)) {
+      const url = new URL(process.env.TRANSLATE_FREE_URL || "https://api.mymemory.translated.net/get");
+      url.searchParams.set("q", part.trim()); url.searchParams.set("langpair", `Autodetect|${MYMEMORY_CODES[target] || target}`); if (email) url.searchParams.set("de", email);
+      const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error(`Free translation returned ${response.status}`);
+      const data = await response.json(); const result = data.responseData || {};
+      if (data.quotaFinished) throw new Error("Free translation allowance is used up for today");
+      if (/DISTINCT LANGUAGES/i.test(String(result.translatedText || "")) || (String(data.responseStatus) === "403" && result.detectedLanguage === target)) { out.push(part); continue; } // already in the target language
+      if (String(data.responseStatus) !== "200" || !result.translatedText) throw new Error(`Free translation failed: ${data.responseDetails || data.responseStatus}`);
+      out.push(result.translatedText.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&") + (/\s$/.test(part) ? " " : ""));
+    }
+  }
+  return out.join("").trim();
+};
+const translateAny = async (text, target) => {
+  if (process.env.ANTHROPIC_API_KEY) { try { return await translateText(text, LANGUAGE_NAMES[target]); } catch (error) { console.error("Claude translation failed, using free engine:", error.message); } }
+  return translateFree(text, target);
+};
 app.post("/api/translate.php", translateLimiter, requireCsrf, requireAuth(), asyncRoute(async (req, res) => {
-  if (!process.env.ANTHROPIC_API_KEY) return send(res, { error: "Translation is not set up yet." }, 503);
   const ticketId = String(req.body.ticket_id || "").trim(); const messageId = String(req.body.message_id || "").trim(); const target = String(req.body.target || "en").toLowerCase();
   if (!LANGUAGE_NAMES[target]) return send(res, { error: "That language is not supported." }, 422);
   const ticket = await ticketFor(req.session.user, ticketId);
@@ -180,7 +214,7 @@ app.post("/api/translate.php", translateLimiter, requireCsrf, requireAuth(), asy
   if (!text) return send(res, { error: "Message not found." }, 404);
   const key = `${ticketId}:${messageId}:${target}:${crypto.createHash("sha1").update(text).digest("hex")}`;
   if (!translationCache.has(key)) {
-    try { translationCache.set(key, await translateText(text, LANGUAGE_NAMES[target])); } catch (error) { console.error("Translation failed:", error.message); return send(res, { error: "Translation is unavailable right now. Try again later." }, 502); }
+    try { translationCache.set(key, await translateAny(text, target)); } catch (error) { console.error("Translation failed:", error.message); return send(res, { error: "Translation is unavailable right now. Try again later." }, 502); }
     if (translationCache.size > 500) translationCache.delete(translationCache.keys().next().value);
   }
   send(res, { text: translationCache.get(key), language: LANGUAGE_NAMES[target] });
