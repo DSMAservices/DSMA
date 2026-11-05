@@ -23,6 +23,8 @@ window.PortalUI = (() => {
   const statusLabel = (status) => tr("st_" + status);
   const clip = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l9-9a3.3 3.3 0 0 1 4.7 4.7l-9 9a1.7 1.7 0 0 1-2.4-2.4l8.4-8.4"/></svg>';
 
+  const tx = (key) => `<span data-i18n="${key}">${escapeHtml(tr(key))}</span>`; // re-translated by i18n.js on every language switch
+
   // ---- Attachment picker (used by the composer and the new-request form) ----
   const makePicker = (scope) => {
     const input = scope.querySelector(".pt-file-input");
@@ -111,10 +113,10 @@ window.PortalUI = (() => {
     form.querySelector("input")?.focus();
   };
 
-  const passwordFields = (current) => `${current ? `<label for="pt-pw-current"><span>${escapeHtml(tr("pt_current_pw"))}</span><input id="pt-pw-current" name="current" type="password" autocomplete="current-password" required></label>` : ""}
-      <label for="pt-pw-new"><span>${escapeHtml(tr("pt_new_pw"))}</span><input id="pt-pw-new" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-      <label for="pt-pw-again"><span>${escapeHtml(tr("pt_confirm_pw"))}</span><input id="pt-pw-again" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
-      <p class="small-note">${escapeHtml(tr("pt_pw_hint"))}</p>`;
+  const passwordFields = (current) => `${current ? `<label for="pt-pw-current"><span>${tx("pt_current_pw")}</span><input id="pt-pw-current" name="current" type="password" autocomplete="current-password" required></label>` : ""}
+      <label for="pt-pw-new"><span>${tx("pt_new_pw")}</span><input id="pt-pw-new" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label for="pt-pw-again"><span>${tx("pt_confirm_pw")}</span><input id="pt-pw-again" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="small-note">${tx("pt_pw_hint")}</p>`;
   const drawPassword = (main) => {
     main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_change_pw"))}</h3>${passwordFields(true)}
       <div class="button-row"><button class="button button-blue" type="submit">${escapeHtml(tr("pt_save_pw"))}</button><button class="button button-outline" type="button" data-act="back">${escapeHtml(tr("pt_cancel"))}</button></div><p class="form-status" role="status"></p></form>`;
@@ -280,11 +282,11 @@ window.PortalUI = (() => {
       const login = $(selector);
       if (!login) return;
       const link = document.createElement("p");
-      link.className = "auth-links"; link.innerHTML = `<button type="button" class="link-btn">${escapeHtml(tr("pt_forgot"))}</button>`;
+      link.className = "auth-links"; link.innerHTML = `<button type="button" class="link-btn">${tx("pt_forgot")}</button>`;
       login.appendChild(link);
       const forgot = document.createElement("form");
       forgot.className = "login-card forgot-form"; forgot.hidden = true;
-      forgot.innerHTML = `<h2>${escapeHtml(tr("pt_forgot_h"))}</h2><p>${escapeHtml(tr("pt_forgot_help"))}</p><label for="forgot-${role}"><span>${escapeHtml(tr("lbl_email"))}</span><input id="forgot-${role}" name="email" type="email" autocomplete="username" required placeholder="name@example.com"></label><button class="button button-blue" type="submit"><span>${escapeHtml(tr("pt_send_link"))}</span> <span aria-hidden="true">↗</span></button><p class="auth-links"><button type="button" class="link-btn" data-back>${escapeHtml(tr("pt_back_signin"))}</button></p><p class="form-status" role="status"></p>`;
+      forgot.innerHTML = `<h2>${tx("pt_forgot_h")}</h2><p>${tx("pt_forgot_help")}</p><label for="forgot-${role}"><span>${tx("lbl_email")}</span><input id="forgot-${role}" name="email" type="email" autocomplete="username" required placeholder="name@example.com"></label><button class="button button-blue" type="submit"><span>${tx("pt_send_link")}</span> <span aria-hidden="true">↗</span></button><p class="auth-links"><button type="button" class="link-btn" data-back>${tx("pt_back_signin")}</button></p><p class="form-status" role="status"></p>`;
       login.after(forgot);
       const toggle = (open) => { login.hidden = open; forgot.hidden = !open; forgot.querySelector(".form-status").textContent = ""; };
       link.querySelector("button").addEventListener("click", () => toggle(true));
@@ -304,7 +306,7 @@ window.PortalUI = (() => {
     $(".portal-tabs")?.classList.add("is-hidden"); document.querySelectorAll(".portal-panel").forEach((panel) => panel.classList.add("is-hidden"));
     const panel = document.createElement("form");
     panel.className = "login-card reset-panel";
-    panel.innerHTML = `<h2>${escapeHtml(tr("pt_reset_h"))}</h2><p>${escapeHtml(tr("pt_reset_help"))}</p>${passwordFields(false)}<button class="button button-blue" type="submit"><span>${escapeHtml(tr("pt_save_pw"))}</span> <span aria-hidden="true">↗</span></button><p class="form-status" role="status"></p>`;
+    panel.innerHTML = `<h2>${tx("pt_reset_h")}</h2><p>${tx("pt_reset_help")}</p>${passwordFields(false)}<button class="button button-blue" type="submit"><span>${tx("pt_save_pw")}</span> <span aria-hidden="true">↗</span></button><p class="form-status" role="status"></p>`;
     holder.prepend(panel);
     panel.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -312,7 +314,7 @@ window.PortalUI = (() => {
       if (data.password !== data.again) { status.textContent = tr("pt_pw_mismatch"); return; }
       try {
         await api("api/password.php?action=reset", { method: "POST", body: JSON.stringify({ token, password: data.password }) });
-        panel.innerHTML = `<h2>${escapeHtml(tr("pt_reset_done_h"))}</h2><p>${escapeHtml(tr("pt_reset_done"))}</p><a class="button button-blue" href="portal.html${params.get("role") === "team" ? "#team" : ""}"><span>${escapeHtml(tr("signin"))}</span> <span aria-hidden="true">↗</span></a>`;
+        panel.innerHTML = `<h2>${tx("pt_reset_done_h")}</h2><p>${tx("pt_reset_done")}</p><a class="button button-blue" href="portal.html${params.get("role") === "team" ? "#team" : ""}"><span>${tx("signin")}</span> <span aria-hidden="true">↗</span></a>`;
         history.replaceState(null, "", "portal.html");
       } catch (error) { status.textContent = error.message; }
     });
@@ -325,20 +327,20 @@ window.PortalUI = (() => {
     if (!login) return;
     const cta = document.createElement("div");
     cta.className = "signup-cta";
-    cta.innerHTML = `<span>${escapeHtml(tr("su_new"))}</span><button type="button" class="button button-signup"><span>${escapeHtml(tr("su_btn"))}</span> <span aria-hidden="true">+</span></button>`;
+    cta.innerHTML = `<span>${tx("su_new")}</span><button type="button" class="button button-signup"><span>${tx("su_btn")}</span> <span aria-hidden="true">+</span></button>`;
     login.querySelector("button[type=submit]").after(cta);
     const form = document.createElement("form");
     form.className = "login-card signup-form"; form.hidden = true;
-    form.innerHTML = `<h2>${escapeHtml(tr("su_h"))}</h2><p>${escapeHtml(tr("su_help"))}</p>
-      <label for="su-name"><span>${escapeHtml(tr("su_name"))}</span><input id="su-name" name="name" type="text" autocomplete="name" maxlength="120" required></label>
-      <label for="su-business"><span>${escapeHtml(tr("su_business"))}</span><input id="su-business" name="business" type="text" autocomplete="organization" maxlength="160" required></label>
-      <label for="su-email"><span>${escapeHtml(tr("lbl_email"))}</span><input id="su-email" name="email" type="email" autocomplete="email" maxlength="190" required placeholder="name@example.com"></label>
-      <label for="su-pw"><span>${escapeHtml(tr("lbl_pw"))}</span><input id="su-pw" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-      <label for="su-pw2"><span>${escapeHtml(tr("pt_confirm_pw"))}</span><input id="su-pw2" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
-      <p class="small-note">${escapeHtml(tr("pt_pw_hint"))}</p>
+    form.innerHTML = `<h2>${tx("su_h")}</h2><p>${tx("su_help")}</p>
+      <label for="su-name"><span>${tx("su_name")}</span><input id="su-name" name="name" type="text" autocomplete="name" maxlength="120" required></label>
+      <label for="su-business"><span>${tx("su_business")}</span><input id="su-business" name="business" type="text" autocomplete="organization" maxlength="160" required></label>
+      <label for="su-email"><span>${tx("lbl_email")}</span><input id="su-email" name="email" type="email" autocomplete="email" maxlength="190" required placeholder="name@example.com"></label>
+      <label for="su-pw"><span>${tx("lbl_pw")}</span><input id="su-pw" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label for="su-pw2"><span>${tx("pt_confirm_pw")}</span><input id="su-pw2" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="small-note">${tx("pt_pw_hint")}</p>
       <div class="hp-field" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-      <button class="button button-blue" type="submit"><span>${escapeHtml(tr("su_submit"))}</span> <span aria-hidden="true">↗</span></button>
-      <p class="auth-links"><button type="button" class="link-btn" data-back>${escapeHtml(tr("pt_back_signin"))}</button></p><p class="form-status" role="status"></p>`;
+      <button class="button button-blue" type="submit"><span>${tx("su_submit")}</span> <span aria-hidden="true">↗</span></button>
+      <p class="auth-links"><button type="button" class="link-btn" data-back>${tx("pt_back_signin")}</button></p><p class="form-status" role="status"></p>`;
     login.after(form);
     const toggle = (open) => { login.hidden = open; form.hidden = !open; form.querySelector(".form-status").textContent = ""; if (open) form.querySelector("input")?.focus(); };
     cta.querySelector("button").addEventListener("click", () => toggle(true));
@@ -381,4 +383,5 @@ window.PortalUI = (() => {
   const scan = () => document.querySelectorAll('input[type="password"]:not([data-eye])').forEach(enhance);
   scan();
   new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+  document.addEventListener("dsma:lang", () => document.querySelectorAll(".pw-eye").forEach((button) => { const shown = button.getAttribute("aria-pressed") === "true"; button.setAttribute("aria-label", label(shown)); button.title = label(shown); }));
 })();
