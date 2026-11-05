@@ -284,7 +284,7 @@ const siteUrl = (req) => {
   const configured = String(process.env.SITE_URL || "").trim().replace(/\/+$/, "");
   if (configured) return configured;
   const host = String(req.get("host") || "").toLowerCase();
-  return /^([a-z0-9-]+\.)*hostingersite\.com$/.test(host) || /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? `${req.protocol}://${host}` : "";
+  return /^([a-z0-9-]+\.)*hostingersite\.com$/.test(host) || /^(www\.)?dsmaservices\.com$/.test(host) || /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? `${req.protocol}://${host}` : "";
 };
 const passwordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, message: { error: "Too many attempts. Please wait a few minutes and try again." } });
 const checkNewPassword = (password, current) => {
