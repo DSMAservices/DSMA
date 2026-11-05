@@ -35,7 +35,8 @@ app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], 
 app.use(["/api/messages.php", "/api/tickets.php"], express.json({ limit: "28mb" }));
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
-app.use(session({ name: "dsma.sid", secret: process.env.SESSION_SECRET, ...(sessionStore ? { store: sessionStore } : {}), resave: false, saveUninitialized: false, cookie: { httpOnly: true, secure: isProduction, sameSite: "lax", maxAge: 1000 * 60 * 60 * 8 } }));
+// Sessions are only needed by the API, so the public pages keep working even if the database is unreachable.
+app.use("/api", session({ name: "dsma.sid", secret: process.env.SESSION_SECRET, ...(sessionStore ? { store: sessionStore } : {}), resave: false, saveUninitialized: false, cookie: { httpOnly: true, secure: isProduction, sameSite: "lax", maxAge: 1000 * 60 * 60 * 8 } }));
 
 const mailer = createMailer();
 console.log(mailer.enabled ? `Contact form emails go to ${mailer.to}.` : "Contact form emails are OFF: set SMTP_HOST, SMTP_USER and SMTP_PASS to turn them on.");
