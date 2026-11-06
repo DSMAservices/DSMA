@@ -35,8 +35,8 @@ let demoMessages = [];
 let demoFiles = [];
 let demoSeq = 1;
 app.set("trust proxy", 1);
-app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], styleSrc: ["'self'", "https://fonts.googleapis.com"], fontSrc: ["'self'", "https://fonts.gstatic.com"], scriptSrc: ["'self'"], imgSrc: ["'self'", "data:"] } } }));
-app.use(["/api/messages.php", "/api/tickets.php"], express.json({ limit: "28mb" }));
+app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], styleSrc: ["'self'", "https://fonts.googleapis.com"], fontSrc: ["'self'", "https://fonts.gstatic.com"], scriptSrc: ["'self'"], imgSrc: ["'self'", "data:"], frameSrc: ["'self'", "https:"] } } }));
+app.use(["/api/messages.php", "/api/tickets.php", "/api/materials.php"], express.json({ limit: "28mb" }));
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 // Sessions are only needed by the API, so the public pages keep working even if the database is unreachable.
@@ -229,7 +229,7 @@ app.get("/api/tickets.php", requireAuth(), asyncRoute(async (req, res) => {
   let rows;
   if (demoMode) rows = req.session.user.role === "customer" ? demoTickets.filter((ticket) => ticket.customer_id === req.session.user.id) : demoTickets;
   else if (req.session.user.role === "customer") { [rows] = await pool.execute("SELECT id, subject, details, status, eta_date, created_at, updated_at, (SELECT m.author_role FROM ticket_messages m WHERE m.ticket_id = tickets.id ORDER BY m.id DESC LIMIT 1) AS last_author_role FROM tickets WHERE customer_id = ? ORDER BY created_at DESC", [req.session.user.id]); }
-  else { [rows] = await pool.execute("SELECT t.id, t.subject, t.details, t.status, t.eta_date, t.created_at, t.updated_at, u.business_name, u.email, (SELECT m.author_role FROM ticket_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1) AS last_author_role FROM tickets t JOIN users u ON u.id = t.customer_id ORDER BY t.created_at DESC"); }
+  else { [rows] = await pool.execute("SELECT t.id, t.subject, t.details, t.status, t.eta_date, t.created_at, t.updated_at, u.business_name, u.email, t.customer_id, (SELECT m.author_role FROM ticket_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1) AS last_author_role FROM tickets t JOIN users u ON u.id = t.customer_id ORDER BY t.created_at DESC"); }
   if (demoMode) rows = rows.map((ticket) => ({ ...ticket, last_author_role: ([...demoMessages].reverse().find((message) => message.ticket_id === ticket.id) || {}).author_role || null }));
   send(res, { tickets: rows });
 }));
@@ -364,6 +364,95 @@ app.post("/api/signup.php", signupLimiter, requireCsrf, asyncRoute(async (req, r
   await new Promise((resolve, reject) => req.session.regenerate((error) => error ? reject(error) : resolve()));
   req.session.user = user; csrfToken(req);
   send(res, { user }, 201);
+}));
+
+// ---- Materials: things DSMA makes for a client (websites, print designs, photos...). The team edits them; the client can only look. ----
+const MATERIAL_KINDS = ["website", "print", "photo", "social", "other"];
+const WEBSITE_ERROR = "Enter a web address like https://example.com.";
+const MATERIAL_ERROR = "Choose what it is, give it a name, and add a website address or a file.";
+const cleanWebsite = (value) => {
+  let text = String(value || "").trim();
+  if (!text) return { url: null };
+  if (text.length > 500) return { error: WEBSITE_ERROR };
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(text)) text = `https://${text}`;
+  let parsed; try { parsed = new URL(text); } catch { return { error: WEBSITE_ERROR }; }
+  const host = parsed.hostname;
+  // only ordinary http(s) sites with a real domain: no javascript:/data: links, no passwords in the link, no bare IP addresses
+  if (!["http:", "https:"].includes(parsed.protocol) || parsed.username || parsed.password || host.includes(":") || /^\d+\.\d+\.\d+\.\d+$/.test(host) || !/^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z0-9-]{2,}$/i.test(host)) return { error: WEBSITE_ERROR };
+  return { url: parsed.pathname === "/" && !parsed.search && !parsed.hash ? parsed.origin : parsed.href };
+};
+const demoMaterials = []; let demoMaterialSeq = 1;
+const materialOut = (row) => ({ id: row.id, kind: row.kind, title: row.title, url: row.url || null, file_name: row.file_name || null, mime: row.mime || null, size: row.size || 0, has_file: Boolean(row.has_file), image: INLINE_TYPES.has(row.mime), pdf: row.mime === "application/pdf", updated_at: row.updated_at });
+const materialLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 80, standardHeaders: true, legacyHeaders: false, message: { error: "Too many attempts. Please wait a few minutes and try again." } });
+// Which client's materials is this request about? A client: always their own. The team: the client they name.
+const materialOwner = async (req) => {
+  if (req.session.user.role === "customer") return req.session.user.id;
+  const id = Number(req.query.customer_id || req.body.customer_id);
+  if (!Number.isSafeInteger(id)) return null;
+  if (demoMode) return demoAccounts.some((account) => account.id === id && account.role === "customer") ? id : null;
+  const [rows] = await pool.execute("SELECT id FROM users WHERE id = ? AND role = 'customer' AND active = 1", [id]);
+  return rows.length ? id : null;
+};
+const loadMaterial = async (id) => {
+  if (demoMode) return demoMaterials.find((item) => item.id === id) || null;
+  const [rows] = await pool.execute("SELECT id, customer_id, kind, title, url, file_name, mime, size, data FROM materials WHERE id = ?", [id]);
+  return rows[0] || null;
+};
+app.get("/api/materials.php", requireAuth(), asyncRoute(async (req, res) => {
+  const owner = await materialOwner(req);
+  if (!owner) return send(res, { error: "Client not found." }, 404);
+  let rows;
+  if (demoMode) rows = demoMaterials.filter((item) => item.customer_id === owner).map((item) => ({ ...item, has_file: Boolean(item.data) }));
+  else [rows] = await pool.execute("SELECT id, kind, title, url, file_name, mime, size, (data IS NOT NULL) AS has_file, updated_at FROM materials WHERE customer_id = ? ORDER BY created_at DESC, id DESC", [owner]);
+  send(res, { materials: rows.map(materialOut) });
+}));
+// Only the team writes. A website needs an address; everything else needs a file.
+const readMaterialBody = (req, existing) => {
+  const title = String(req.body.title || "").trim();
+  const kind = existing ? existing.kind : String(req.body.kind || "");
+  if (!MATERIAL_KINDS.includes(kind) || !title) return { error: MATERIAL_ERROR };
+  if (title.length > 160) return { error: "That is too long." };
+  let url = null; let file = null;
+  if (kind === "website") { const site = cleanWebsite(req.body.url); if (site.error) return { error: site.error }; if (!site.url) return { error: MATERIAL_ERROR }; url = site.url; }
+  else if (req.body.file) { const parsed = parseAttachments([req.body.file]); if (parsed.error) return { error: parsed.error }; file = parsed.files[0]; }
+  else if (!existing) return { error: MATERIAL_ERROR };
+  return { kind, title, url, file };
+};
+app.post("/api/materials.php", materialLimiter, requireCsrf, requireAuth("team"), asyncRoute(async (req, res) => {
+  const owner = await materialOwner(req);
+  if (!owner) return send(res, { error: "Client not found." }, 404);
+  const parsed = readMaterialBody(req, null);
+  if (parsed.error) return send(res, { error: parsed.error }, 422);
+  let id;
+  if (demoMode) { id = demoMaterialSeq++; demoMaterials.unshift({ id, customer_id: owner, kind: parsed.kind, title: parsed.title, url: parsed.url, file_name: parsed.file && parsed.file.name, mime: parsed.file && parsed.file.mime, size: parsed.file && parsed.file.size, data: parsed.file && parsed.file.data, updated_at: new Date().toISOString() }); }
+  else { const f = parsed.file; const [created] = await pool.execute("INSERT INTO materials (customer_id, kind, title, url, file_name, mime, size, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [owner, parsed.kind, parsed.title, parsed.url, f ? f.name : null, f ? f.mime : null, f ? f.size : null, f ? f.data : null]); id = created.insertId; }
+  send(res, { id }, 201);
+}));
+app.patch("/api/materials.php", materialLimiter, requireCsrf, requireAuth("team"), asyncRoute(async (req, res) => {
+  const existing = await loadMaterial(Number(req.body.id));
+  if (!existing) return send(res, { error: "Material not found." }, 404);
+  const parsed = readMaterialBody(req, existing);
+  if (parsed.error) return send(res, { error: parsed.error }, 422);
+  if (demoMode) { existing.title = parsed.title; if (existing.kind === "website") existing.url = parsed.url; if (parsed.file) Object.assign(existing, { file_name: parsed.file.name, mime: parsed.file.mime, size: parsed.file.size, data: parsed.file.data }); existing.updated_at = new Date().toISOString(); }
+  else if (parsed.file) await pool.execute("UPDATE materials SET title = ?, url = ?, file_name = ?, mime = ?, size = ?, data = ? WHERE id = ?", [parsed.title, existing.kind === "website" ? parsed.url : null, parsed.file.name, parsed.file.mime, parsed.file.size, parsed.file.data, existing.id]);
+  else await pool.execute("UPDATE materials SET title = ?, url = ? WHERE id = ?", [parsed.title, existing.kind === "website" ? parsed.url : existing.url, existing.id]);
+  send(res, { ok: true });
+}));
+app.delete("/api/materials.php", materialLimiter, requireCsrf, requireAuth("team"), asyncRoute(async (req, res) => {
+  const id = Number(req.body.id);
+  if (!(await loadMaterial(id))) return send(res, { error: "Material not found." }, 404);
+  if (demoMode) demoMaterials.splice(demoMaterials.findIndex((item) => item.id === id), 1);
+  else await pool.execute("DELETE FROM materials WHERE id = ?", [id]);
+  send(res, { ok: true });
+}));
+// The file itself: a client can fetch only their own; the team can fetch any.
+app.get("/api/material-file.php", requireAuth(), asyncRoute(async (req, res) => {
+  const item = await loadMaterial(Number(req.query.id));
+  if (!item || !item.data || (req.session.user.role === "customer" && item.customer_id !== req.session.user.id)) return send(res, { error: "File not found." }, 404);
+  const inline = (INLINE_TYPES.has(item.mime) || item.mime === "application/pdf") && req.query.download !== "1";
+  const headers = { "Content-Type": item.mime, "Content-Length": item.data.length, "X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-cache", "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(item.file_name || "file")}` };
+  if (INLINE_TYPES.has(item.mime)) headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"; // a picture can never run anything
+  res.set(headers); res.send(item.data);
 }));
 
 app.use(["/api", "/database", "/tools"], (req, res) => res.status(404).json({ error: "Not found." }));

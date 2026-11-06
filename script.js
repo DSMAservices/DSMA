@@ -9,7 +9,7 @@ const SERVER_ERRORS = [
   [/too long\.$/, "e_long"], [/^Subject and details are required\.$/, "e_subject"], [/^An account with that email already exists\.$/, "e_exists"],
   [/^Enter all details and a password/, "e_details8"], [/^Write a message or attach a file\.$/, "pt_err_empty"], [/^This reset link is invalid/, "e_reset_bad"],
   [/^Your current password is not correct\.$/, "e_pw_wrong"], [/^Use at least 8 characters\.$/, "pt_pw_hint"], [/^Choose a different password/, "e_pw_same"],
-  [/^Too many /, "e_limit"], [/^Translation is unavailable/, "e_translate"], [/^You can attach up to \d+ files/, "pt_err_count"],
+  [/^Too many /, "e_limit"], [/^Translation is unavailable/, "e_translate"], [/^Enter a web address/, "e_url"], [/^Choose what it is/, "e_mat"], [/^You can attach up to \d+ files/, "pt_err_count"],
   [/^"(.+)" is not an allowed file type/, "pt_err_type"], [/^"(.+)" is larger than 5 MB\./, "pt_err_size"], [/^"(.+)" is empty\./, "e_file_empty"],
   [/^"(.+)" does not look like a real \.(\w+) file/, "e_file_fake"]
 ];

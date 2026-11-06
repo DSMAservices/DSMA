@@ -58,6 +58,21 @@ const TABLES = [
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT password_resets_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  `CREATE TABLE IF NOT EXISTS materials (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT UNSIGNED NOT NULL,
+      kind ENUM('website','print','photo','social','other') NOT NULL,
+      title VARCHAR(160) NOT NULL,
+      url VARCHAR(500) NULL,
+      file_name VARCHAR(200) NULL,
+      mime VARCHAR(100) NULL,
+      size INT UNSIGNED NULL,
+      data MEDIUMBLOB NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT materials_customer_fk FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX materials_customer_idx (customer_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   `CREATE TABLE IF NOT EXISTS contact_messages (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(120) NOT NULL,

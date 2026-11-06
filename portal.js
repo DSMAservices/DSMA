@@ -8,7 +8,8 @@ window.PortalUI = (() => {
   const STATUSES = ["New", "In progress", "Waiting", "Complete"];
   const POLL_MS = 20000;
 
-  const state = { translate: false, role: null, user: null, tickets: [], selected: null, view: "empty", filter: "all", messageCount: -1 };
+  const state = { translate: false, role: null, user: null, tickets: [], selected: null, view: "empty", filter: "all", messageCount: -1, materials: [], matOpen: false, matId: null, matEdit: null, matCustomer: null };
+  const KINDS = [["website", "mt_g_website"], ["print", "mt_g_print"], ["photo", "mt_g_photo"], ["social", "mt_g_social"], ["other", "mt_g_other"]];
   let root = null;
   let picker = null;
   let timer = null;
@@ -63,10 +64,11 @@ window.PortalUI = (() => {
     root.innerHTML = `
       <div class="pt-top"><div><p class="portal-eyebrow">${escapeHtml(customer ? tr("d_eyebrow") : tr("pt_team_eyebrow"))}</p><h2>${escapeHtml(title)}</h2><p class="pt-help">${escapeHtml(customer ? tr("pt_help_customer") : tr("pt_help_team"))}</p></div><div class="pt-top-actions"><button class="button button-outline" type="button" data-act="password">${escapeHtml(tr("pt_change_pw"))}</button><button class="button button-outline" type="button" data-act="logout">${escapeHtml(tr("signout"))}</button></div></div>
       <div class="pt-layout is-${state.view === "empty" || state.view === "list" ? "list" : "detail"}">
-        <aside class="pt-side"><div class="pt-side-head"><button class="button button-blue" type="button" data-act="${customer ? "new" : "customer"}">${escapeHtml(customer ? tr("pt_new_request") : tr("pt_new_customer"))} <span aria-hidden="true">+</span></button></div>${filters}<ul class="pt-list" id="pt-list"></ul></aside>
+        <aside class="pt-side"><div class="pt-side-head"><button class="button button-blue" type="button" data-act="${customer ? "new" : "customer"}">${escapeHtml(customer ? tr("pt_new_request") : tr("pt_new_customer"))} <span aria-hidden="true">+</span></button></div>${filters}<details class="pt-mat" id="pt-mat"></details><ul class="pt-list" id="pt-list"></ul></aside>
         <section class="pt-main" id="pt-main" aria-live="polite"></section>
       </div>`;
     drawList();
+    drawMaterials();
     drawMain();
   };
 
@@ -88,8 +90,97 @@ window.PortalUI = (() => {
     if (state.view === "new") return drawNewRequest(main);
     if (state.view === "customer") return drawNewCustomer(main);
     if (state.view === "password") return drawPassword(main);
+    if (state.view === "material" && state.matId) return drawMaterial(main);
+    if (state.view === "material-form") return drawMaterialForm(main);
     if (state.view === "thread" && state.selected) return drawThread(main);
     main.innerHTML = `<div class="pt-empty"><h3>${escapeHtml(state.role === "customer" ? tr("pt_empty_h_customer") : tr("pt_empty_h_team"))}</h3><p>${escapeHtml(state.role === "customer" ? tr("pt_empty_p_customer") : tr("pt_empty_p_team"))}</p></div>`;
+  };
+
+  // ---- Materials: things the team made for a client (websites, print designs...). The team edits them; clients only look. ----
+  const teamSide = () => state.role === "team";
+  const materialClient = () => (teamSide() ? ticket()?.customer_id ?? state.matCustomer : null);
+  const material = () => state.materials.find((item) => item.id === state.matId);
+  const drawMaterials = () => {
+    const box = $("#pt-mat", root);
+    if (!box) return;
+    const team = teamSide();
+    const groups = KINDS.map(([kind, key]) => [kind, key, state.materials.filter((item) => item.kind === kind)]).filter((group) => group[2].length);
+    const needClient = team && !materialClient();
+    const body = needClient ? `<p class="pt-mat-note">${tx("mt_pick")}</p>`
+      : `${team ? `<button class="button button-blue pt-mat-add" type="button" data-act="mt-add">${tx("mt_add")} <span aria-hidden="true">+</span></button>` : ""}`
+        + (groups.length ? groups.map(([, key, items]) => `<h4>${tx(key)}</h4><ul>${items.map((item) => `<li><button type="button" class="pt-mat-item ${item.id === state.matId && state.view === "material" ? "is-open" : ""}" data-mat="${item.id}">${escapeHtml(item.title)}</button></li>`).join("")}</ul>`).join("")
+          : `<p class="pt-mat-note">${tx(team ? "mt_empty_team" : "mt_empty_client")}</p>`);
+    box.open = state.matOpen;
+    box.innerHTML = `<summary>${tx("mt_h")} <span class="pt-mat-count">${state.materials.length}</span></summary><div class="pt-mat-body">${body}</div>`;
+  };
+  const loadMaterials = async () => {
+    const id = materialClient();
+    if (teamSide() && !id) { state.materials = []; return drawMaterials(); }
+    if (teamSide()) state.matCustomer = id;
+    try { state.materials = (await api("api/materials.php" + (teamSide() ? `?customer_id=${encodeURIComponent(id)}` : ""))).materials; } catch { return; }
+    if (state.matId && !material() && state.view === "material") { state.matId = null; state.view = "empty"; drawMain(); }
+    drawMaterials();
+  };
+  const canEmbed = (url) => { try { const link = new URL(url); return link.protocol === "https:" && link.origin !== window.location.origin; } catch { return false; } };
+  const fileUrl = (item, download) => `api/material-file.php?id=${encodeURIComponent(item.id)}${download ? "&download=1" : ""}`;
+  const drawMaterial = (main) => {
+    const item = material();
+    if (!item) { state.view = "empty"; return drawMain(); }
+    let look;
+    let actions = "";
+    if (item.url) {
+      actions = `<a class="button button-blue" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${tx("mt_open")} <span aria-hidden="true">↗</span></a><button class="button button-outline" type="button" data-act="mt-refresh">${tx("mt_refresh")}</button>`;
+      look = canEmbed(item.url)
+        ? `<iframe class="mt-frame" src="${escapeHtml(item.url)}" title="${escapeHtml(item.title)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" loading="lazy"></iframe><p class="small-note">${tx("mt_site_note")}</p>`
+        : `<p class="mt-box">${tx("mt_insecure")}</p>`;
+    } else if (item.image) {
+      actions = `<a class="button button-blue" href="${fileUrl(item)}" target="_blank" rel="noopener">${tx("mt_full")}</a><a class="button button-outline" href="${fileUrl(item, true)}" download>${tx("mt_download")}</a>`;
+      look = `<img class="mt-img" src="${fileUrl(item)}" alt="${escapeHtml(item.title)}">`;
+    } else if (item.pdf) {
+      actions = `<a class="button button-blue" href="${fileUrl(item)}" target="_blank" rel="noopener">${tx("mt_full")}</a><a class="button button-outline" href="${fileUrl(item, true)}" download>${tx("mt_download")}</a>`;
+      look = `<iframe class="mt-frame" src="${fileUrl(item)}" title="${escapeHtml(item.title)}"></iframe>`;
+    } else {
+      actions = `<a class="button button-blue" href="${fileUrl(item, true)}" download>${tx("mt_download")}</a>`;
+      look = `<p class="mt-box">${escapeHtml(item.file_name || "")} <small>${size(item.size || 0)}</small></p>`;
+    }
+    const kind = KINDS.find((entry) => entry[0] === item.kind);
+    main.innerHTML = `<div class="pt-form mt-view"><button class="pt-back" type="button" data-act="back">← ${tx("mt_back")}</button><p class="portal-eyebrow">${tx(kind ? kind[1] : "mt_g_other")}</p><h3>${escapeHtml(item.title)}</h3>
+      <div class="button-row">${actions}</div>${look}
+      ${teamSide() ? `<div class="button-row"><button class="button button-outline" type="button" data-act="mt-edit">${tx("mt_edit")}</button><button class="button button-outline pt-danger" type="button" data-act="mt-delete">${tx("mt_delete")}</button></div>` : ""}</div>`;
+  };
+  const drawMaterialForm = (main) => {
+    const editing = state.materials.find((item) => item.id === state.matEdit);
+    const kind = editing ? editing.kind : "website";
+    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${tx("mt_back")}</button><h3>${tx(editing ? "mt_form_edit" : "mt_form_new")}</h3>
+      <label for="mt-kind"><span>${tx("mt_f_kind")}</span><select id="mt-kind" name="kind" ${editing ? "disabled" : ""}>${KINDS.map(([value, key]) => `<option value="${value}" ${value === kind ? "selected" : ""}>${escapeHtml(tr(key))}</option>`).join("")}</select></label>
+      <label for="mt-title"><span>${tx("mt_f_title")}</span><input id="mt-title" name="title" type="text" maxlength="160" required value="${escapeHtml(editing ? editing.title : "")}" placeholder="${escapeHtml(tr("mt_f_title_ph"))}"></label>
+      <label for="mt-url" class="mt-only-website"><span>${tx("mt_f_url")}</span><input id="mt-url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="off" value="${escapeHtml(editing && editing.url ? editing.url : "")}" placeholder="www.example.com"></label>
+      <label for="mt-file" class="mt-only-file"><span>${tx("mt_f_file")}</span><input id="mt-file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.txt,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx"></label>
+      <p class="small-note mt-only-file">${tx(editing ? "mt_f_keep" : "mt_f_file_hint")}</p>
+      <div class="button-row"><button class="button button-blue" type="submit">${tx("mt_save")}</button><button class="button button-outline" type="button" data-act="back">${tx("pt_cancel")}</button></div><p class="form-status" role="status"></p></form>`;
+    const form = main.querySelector("form");
+    const sync = () => { const site = form.kind.value === "website"; form.querySelectorAll(".mt-only-website").forEach((el) => { el.hidden = !site; }); form.querySelectorAll(".mt-only-file").forEach((el) => { el.hidden = site; }); };
+    form.kind.addEventListener("change", sync); sync();
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const status = form.querySelector(".form-status"); const submit = form.querySelector("[type=submit]"); submit.disabled = true; status.textContent = tr("pt_sending");
+      try {
+        const body = { title: form.title.value, kind: form.kind.value };
+        if (form.kind.value === "website") body.url = form.url.value;
+        const chosen = form.file.files[0];
+        if (form.kind.value !== "website" && chosen) {
+          if (chosen.size > MAX_BYTES) throw new Error(tr("pt_err_size", { name: chosen.name }));
+          body.file = { name: chosen.name, data: await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(",")[1] || ""); reader.onerror = () => reject(new Error(tr("pt_err_read", { name: chosen.name }))); reader.readAsDataURL(chosen); }) };
+        }
+        let saved;
+        if (editing) saved = await api("api/materials.php", { method: "PATCH", body: JSON.stringify({ ...body, id: editing.id }) });
+        else saved = await api("api/materials.php", { method: "POST", body: JSON.stringify({ ...body, customer_id: materialClient() }) });
+        await loadMaterials();
+        state.matOpen = true; state.matId = editing ? editing.id : saved.id;
+        setView(state.materials.some((item) => item.id === state.matId) ? "material" : "empty"); drawMaterials();
+      } catch (error) { status.textContent = error.message; submit.disabled = false; }
+    });
+    form.title.focus();
   };
 
   const drawNewRequest = (main) => {
@@ -207,7 +298,7 @@ window.PortalUI = (() => {
     drawList();
     if (!quiet && state.view === "empty") drawMain();
   };
-  const openTicket = async (id) => { state.selected = id; state.messageCount = -1; setView("thread"); root.scrollIntoView({ block: "start" }); };
+  const openTicket = async (id) => { state.selected = id; state.messageCount = -1; setView("thread"); root.scrollIntoView({ block: "start" }); if (teamSide()) loadMaterials(); };
 
   const translateMessage = async (article, button) => {
     const out = article.querySelector(".pt-tr-out");
@@ -226,6 +317,8 @@ window.PortalUI = (() => {
   const onClick = async (event) => {
     const filter = event.target.closest("[data-filter]");
     if (filter) { state.filter = filter.dataset.filter; root.querySelectorAll("[data-filter]").forEach((button) => button.classList.toggle("is-on", button === filter)); return drawList(); }
+    const mat = event.target.closest("[data-mat]");
+    if (mat) { state.matId = Number(mat.dataset.mat); state.selected = teamSide() ? state.selected : null; return setView("material"); }
     const item = event.target.closest(".pt-item");
     if (item) return openTicket(item.dataset.id);
     const act = event.target.closest("[data-act]")?.dataset.act;
@@ -233,6 +326,14 @@ window.PortalUI = (() => {
     try {
       if (act === "translate") return translateMessage(event.target.closest(".pt-msg"), event.target.closest("[data-act]"));
       if (act === "logout") return logout();
+      if (act === "mt-add") { state.matEdit = null; return setView("material-form"); }
+      if (act === "mt-edit") { state.matEdit = state.matId; return setView("material-form"); }
+      if (act === "mt-refresh") { const frame = root.querySelector(".mt-frame"); if (frame) frame.src = frame.src; return; }
+      if (act === "mt-delete") {
+        if (!window.confirm(tr("mt_confirm_delete"))) return;
+        await api("api/materials.php", { method: "DELETE", body: JSON.stringify({ id: state.matId }) });
+        state.matId = null; await loadMaterials(); return setView("empty");
+      }
       if (act === "new") { state.selected = null; return setView("new"); }
       if (act === "customer") { state.selected = null; return setView("customer"); }
       if (act === "password") { state.selected = null; return setView("password"); }
@@ -255,7 +356,7 @@ window.PortalUI = (() => {
     clearInterval(timer);
     timer = setInterval(async () => {
       if (document.hidden || !state.role) return;
-      try { await loadTickets(true); if (state.view === "thread") await refreshThread(false); } catch { /* try again next time */ }
+      try { await loadTickets(true); await loadMaterials(); if (state.view === "thread") await refreshThread(false); } catch { /* try again next time */ }
     }, POLL_MS);
   };
 
@@ -269,8 +370,9 @@ window.PortalUI = (() => {
     $("#customer-auth-view")?.classList.add("is-hidden"); $("#login-view")?.classList.add("is-hidden");
     root.classList.remove("is-hidden");
     root.onclick = onClick;
+    if (!root.dataset.mt) { root.dataset.mt = "1"; root.addEventListener("toggle", (event) => { if (event.target.id === "pt-mat") state.matOpen = event.target.open; }, true); }
     try { const result = await api("api/tickets.php"); state.tickets = result.tickets; } catch (error) { state.tickets = []; }
-    buildShell(); poll();
+    buildShell(); poll(); loadMaterials();
   };
 
   const rerender = () => { if (!state.role || !root) return; const draft = $("#pt-body", root)?.value; buildShell(); const body = $("#pt-body", root); if (body && draft) body.value = draft; };
