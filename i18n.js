@@ -16,9 +16,6 @@ window.DSMA_I18N = {
   ],
   strings: {
     en: {
-      app_add: "Add to your phone",
-      app_ios: "On iPhone: tap the Share button, then “Add to Home Screen”.",
-      app_other: "Open your browser menu, then choose “Install app” or “Add to Home screen”.",
       mt_h: "Materials",
       mt_pick: "Open a request first. Then you can see this client’s materials.",
       mt_add: "Add material",
@@ -249,9 +246,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / Private request space", foot_right: "Digital support, built together."
     },
     es: {
-      app_add: "Agregar a su teléfono",
-      app_ios: "En iPhone: toque el botón Compartir y luego «Agregar a pantalla de inicio».",
-      app_other: "Abra el menú de su navegador y elija «Instalar app» o «Agregar a pantalla de inicio».",
       mt_h: "Materiales",
       mt_pick: "Primero abra una solicitud. Así verá los materiales de este cliente.",
       mt_add: "Agregar material",
@@ -553,9 +547,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / Espacio privado de solicitudes", foot_right: "Apoyo digital, construido en conjunto."
     },
     zh: {
-      app_add: "添加到手机",
-      app_ios: "在 iPhone 上：点“分享”按钮，再点“添加到主屏幕”。",
-      app_other: "打开浏览器菜单，然后选择“安装应用”或“添加到主屏幕”。",
       mt_h: "我们为您做的作品",
       mt_pick: "请先打开一个请求，就能看到这位客户的作品。",
       mt_add: "添加作品",
@@ -857,9 +848,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / 私人请求空间", foot_right: "数字支持，携手共建。"
     },
     ar: {
-      app_add: "أضِف إلى هاتفك",
-      app_ios: "على آيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».",
-      app_other: "افتح قائمة المتصفح ثم اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».",
       mt_h: "المواد",
       mt_pick: "افتح طلبًا أولًا. بعدها سترى مواد هذا العميل.",
       mt_add: "إضافة مادة",
@@ -1161,9 +1149,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / مساحة الطلبات الخاصة", foot_right: "دعم رقمي، نبنيه معًا."
     },
     fr: {
-      app_add: "Ajouter à votre téléphone",
-      app_ios: "Sur iPhone : touchez le bouton Partager, puis « Sur l’écran d’accueil ».",
-      app_other: "Ouvrez le menu de votre navigateur, puis choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».",
       mt_h: "Documents créés",
       mt_pick: "Ouvrez d’abord une demande. Vous verrez alors les documents de ce client.",
       mt_add: "Ajouter un document",
@@ -1465,9 +1450,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / Espace de demandes privé", foot_right: "Un soutien numérique, construit ensemble."
     },
     pt: {
-      app_add: "Adicionar ao seu celular",
-      app_ios: "No iPhone: toque no botão Compartilhar e depois em “Adicionar à Tela de Início”.",
-      app_other: "Abra o menu do navegador e escolha “Instalar app” ou “Adicionar à tela inicial”.",
       mt_h: "Materiais",
       mt_pick: "Abra primeiro um pedido. Assim você verá os materiais deste cliente.",
       mt_add: "Adicionar material",
@@ -1769,9 +1751,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / Espaço privado de pedidos", foot_right: "Apoio digital, construído juntos."
     },
     vi: {
-      app_add: "Thêm vào điện thoại",
-      app_ios: "Trên iPhone: bấm nút Chia sẻ, rồi chọn “Thêm vào Màn hình chính”.",
-      app_other: "Mở menu trình duyệt, rồi chọn “Cài đặt ứng dụng” hoặc “Thêm vào màn hình chính”.",
       mt_h: "Sản phẩm đã làm",
       mt_pick: "Hãy mở một yêu cầu trước. Sau đó bạn sẽ thấy sản phẩm của khách hàng này.",
       mt_add: "Thêm sản phẩm",
@@ -2073,9 +2052,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / Không gian yêu cầu riêng", foot_right: "Hỗ trợ kỹ thuật số, cùng nhau xây dựng."
     },
     tr: {
-      app_add: "Telefonunuza ekleyin",
-      app_ios: "iPhone’da: Paylaş düğmesine basın, sonra “Ana Ekrana Ekle”yi seçin.",
-      app_other: "Tarayıcı menüsünü açın, sonra “Uygulamayı yükle” veya “Ana ekrana ekle”yi seçin.",
       mt_h: "Hazırlananlar",
       mt_pick: "Önce bir talep açın. Sonra bu müşterinin hazırlananlarını görebilirsiniz.",
       mt_add: "Ekle",
@@ -2377,9 +2353,6 @@ window.DSMA_I18N = {
       foot_portal: "DSMA / Özel talep alanı", foot_right: "Dijital destek, birlikte inşa edildi."
     },
     ja: {
-      app_add: "スマホに追加",
-      app_ios: "iPhoneの場合：共有ボタンを押して、「ホーム画面に追加」を選びます。",
-      app_other: "ブラウザのメニューを開き、「アプリをインストール」または「ホーム画面に追加」を選びます。",
       mt_h: "制作物",
       mt_pick: "まずリクエストを開いてください。このお客様の制作物が見られます。",
       mt_add: "制作物を追加",
@@ -2724,9 +2697,6 @@ window.DSMA_I18N = {
       foot_right: "デジタルの支援を、いっしょに。"
     },
     te: {
-      app_add: "మీ ఫోన్‌కు జోడించండి",
-      app_ios: "iPhoneలో: షేర్ బటన్ నొక్కి, ఆపై “Add to Home Screen” ఎంచుకోండి.",
-      app_other: "బ్రౌజర్ మెనూ తెరిచి, “Install app” లేదా “Add to Home screen” ఎంచుకోండి.",
       mt_h: "తయారు చేసినవి",
       mt_pick: "ముందుగా ఒక అభ్యర్థనను తెరవండి. అప్పుడు ఈ క్లయింట్ కోసం తయారు చేసినవి కనిపిస్తాయి.",
       mt_add: "జోడించండి",

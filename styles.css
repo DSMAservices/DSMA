@@ -16,7 +16,7 @@ body { margin: 0; overflow-x: clip; background: var(--paper); color: var(--ink);
 a { color: inherit; text-decoration: none; }
 button, input, textarea, select { font: inherit; }
 button, a { touch-action: manipulation; }
-button { cursor: pointer; }
+button { cursor: pointer; color: inherit; -webkit-text-fill-color: currentColor; }
 ::selection { background: var(--blue); color: var(--white); }
 :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 .skip-link { position: fixed; z-index: 60; top: -100px; left: 20px; padding: 10px 14px; background: var(--ink); color: var(--white); font-size: .85rem; font-weight: 700; }
@@ -35,7 +35,7 @@ button { cursor: pointer; }
 .site-nav a:not(.nav-portal):hover, .site-nav a:not(.nav-portal):focus-visible { background-size: 100% 2px; }
 .nav-portal { display: inline-flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 44px; padding: 9px 13px; border: 1px solid var(--ink); font-size: .8rem; font-weight: 700; transition: color 180ms, background 180ms; }
 .nav-portal:hover { background: var(--ink); color: var(--white); }
-.menu-toggle { display: none; align-items: center; gap: 16px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--ink); background: transparent; font-weight: 700; }
+.menu-toggle { color: var(--ink); display: none; align-items: center; gap: 16px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--ink); background: transparent; font-weight: 700; }
 .menu-toggle span { font-size: 1.3rem; line-height: .7; }
 
 /* Main statement */
@@ -1106,5 +1106,3 @@ html[lang="te"] .hero2 h1 { line-height: 1.3 !important; }
 .pt-danger { border-color: #b3261e; color: #b3261e; }
 [hidden] { display: none !important; }
 
-.app-tip { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin: 0 0 14px; }
-.app-tip .button { min-height: 48px; }

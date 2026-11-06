@@ -129,7 +129,7 @@ window.PortalUI = (() => {
     let look;
     let actions = "";
     if (item.url) {
-      actions = `<a class="button button-blue" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${tx("mt_open")} <span aria-hidden="true">↗</span></a><button class="button button-outline" type="button" data-act="mt-refresh">${tx("mt_refresh")}</button>`;
+      actions = `<a class="button button-blue" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${tx("mt_open")} <span aria-hidden="true">↗︎</span></a><button class="button button-outline" type="button" data-act="mt-refresh">${tx("mt_refresh")}</button>`;
       look = canEmbed(item.url)
         ? `<iframe class="mt-frame" src="${escapeHtml(item.url)}" title="${escapeHtml(item.title)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" loading="lazy"></iframe><p class="small-note">${tx("mt_site_note")}</p>`
         : `<p class="mt-box">${tx("mt_insecure")}</p>`;
@@ -144,14 +144,14 @@ window.PortalUI = (() => {
       look = `<p class="mt-box">${escapeHtml(item.file_name || "")} <small>${size(item.size || 0)}</small></p>`;
     }
     const kind = KINDS.find((entry) => entry[0] === item.kind);
-    main.innerHTML = `<div class="pt-form mt-view"><button class="pt-back" type="button" data-act="back">← ${tx("mt_back")}</button><p class="portal-eyebrow">${tx(kind ? kind[1] : "mt_g_other")}</p><h3>${escapeHtml(item.title)}</h3>
+    main.innerHTML = `<div class="pt-form mt-view"><button class="pt-back" type="button" data-act="back">←︎ ${tx("mt_back")}</button><p class="portal-eyebrow">${tx(kind ? kind[1] : "mt_g_other")}</p><h3>${escapeHtml(item.title)}</h3>
       <div class="button-row">${actions}</div>${look}
       ${teamSide() ? `<div class="button-row"><button class="button button-outline" type="button" data-act="mt-edit">${tx("mt_edit")}</button><button class="button button-outline pt-danger" type="button" data-act="mt-delete">${tx("mt_delete")}</button></div>` : ""}</div>`;
   };
   const drawMaterialForm = (main) => {
     const editing = state.materials.find((item) => item.id === state.matEdit);
     const kind = editing ? editing.kind : "website";
-    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${tx("mt_back")}</button><h3>${tx(editing ? "mt_form_edit" : "mt_form_new")}</h3>
+    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">←︎ ${tx("mt_back")}</button><h3>${tx(editing ? "mt_form_edit" : "mt_form_new")}</h3>
       <label for="mt-kind"><span>${tx("mt_f_kind")}</span><select id="mt-kind" name="kind" ${editing ? "disabled" : ""}>${KINDS.map(([value, key]) => `<option value="${value}" ${value === kind ? "selected" : ""}>${escapeHtml(tr(key))}</option>`).join("")}</select></label>
       <label for="mt-title"><span>${tx("mt_f_title")}</span><input id="mt-title" name="title" type="text" maxlength="160" required value="${escapeHtml(editing ? editing.title : "")}" placeholder="${escapeHtml(tr("mt_f_title_ph"))}"></label>
       <label for="mt-url" class="mt-only-website"><span>${tx("mt_f_url")}</span><input id="mt-url" name="url" type="text" inputmode="url" maxlength="500" autocapitalize="off" value="${escapeHtml(editing && editing.url ? editing.url : "")}" placeholder="www.example.com"></label>
@@ -184,7 +184,7 @@ window.PortalUI = (() => {
   };
 
   const drawNewRequest = (main) => {
-    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("req_h"))}</h3>
+    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">←︎ ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("req_h"))}</h3>
       <label for="pt-subject"><span>${escapeHtml(tr("lbl_subj"))}</span><input id="pt-subject" name="subject" type="text" maxlength="200" required placeholder="${escapeHtml(tr("ph_subj"))}"></label>
       <label for="pt-details"><span>${escapeHtml(tr("lbl_det"))}</span><textarea id="pt-details" name="details" rows="6" maxlength="5000" required placeholder="${escapeHtml(tr("ph_det"))}"></textarea></label>
       ${pickerHtml()}<p class="small-note">${escapeHtml(tr("pt_attach_hint"))}</p>
@@ -209,7 +209,7 @@ window.PortalUI = (() => {
       <label for="pt-pw-again"><span>${tx("pt_confirm_pw")}</span><input id="pt-pw-again" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
       <p class="small-note">${tx("pt_pw_hint")}</p>`;
   const drawPassword = (main) => {
-    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_change_pw"))}</h3>${passwordFields(true)}
+    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">←︎ ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_change_pw"))}</h3>${passwordFields(true)}
       <div class="button-row"><button class="button button-blue" type="submit">${escapeHtml(tr("pt_save_pw"))}</button><button class="button button-outline" type="button" data-act="back">${escapeHtml(tr("pt_cancel"))}</button></div><p class="form-status" role="status"></p></form>`;
     const form = main.querySelector("form");
     form.addEventListener("submit", async (event) => {
@@ -222,7 +222,7 @@ window.PortalUI = (() => {
   };
 
   const drawNewCustomer = (main) => {
-    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_new_customer"))}</h3><p class="small-note">${escapeHtml(tr("pt_new_customer_help"))}</p>
+    main.innerHTML = `<form class="pt-form"><button class="pt-back" type="button" data-act="back">←︎ ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(tr("pt_new_customer"))}</h3><p class="small-note">${escapeHtml(tr("pt_new_customer_help"))}</p>
       <div class="form-grid"><label for="pt-c-name"><span>${escapeHtml(tr("c_name"))}</span><input id="pt-c-name" name="name" type="text" required></label><label for="pt-c-business"><span>${escapeHtml(tr("c_business"))}</span><input id="pt-c-business" name="business" type="text" required></label></div>
       <div class="form-grid"><label for="pt-c-email"><span>${escapeHtml(tr("c_email"))}</span><input id="pt-c-email" name="email" type="email" required placeholder="name@example.com"></label><label for="pt-c-pass"><span>${escapeHtml(tr("c_pass"))}</span><input id="pt-c-pass" name="password" type="text" required minlength="8" placeholder="${escapeHtml(tr("c_pass_ph"))}"></label></div>
       <div class="button-row"><button class="button button-blue" type="submit">${escapeHtml(tr("c_create"))}</button><button class="button button-outline" type="button" data-act="back">${escapeHtml(tr("pt_cancel"))}</button></div><p class="form-status" role="status"></p></form>`;
@@ -253,9 +253,9 @@ window.PortalUI = (() => {
     const controls = team
       ? `<div class="pt-controls"><label>${escapeHtml(tr("pt_status"))}<select id="pt-status">${STATUSES.map((status) => `<option value="${status}" ${current.status === status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>`).join("")}</select></label><label>${escapeHtml(tr("eta"))}<input id="pt-eta" type="date" value="${escapeHtml(current.eta_date ? String(current.eta_date).slice(0, 10) : "")}"></label><button class="button button-blue" type="button" data-act="save">${escapeHtml(tr("pt_save"))}</button></div>`
       : `<p class="pt-facts"><span class="pt-pill s-${escapeHtml(current.status.replace(/\s/g, "-"))}">${escapeHtml(statusLabel(current.status))}</span><span>${escapeHtml(tr("eta"))}: <strong>${escapeHtml(formatDate(current.eta_date))}</strong></span></p>`;
-    main.innerHTML = `<div class="pt-thread"><div class="pt-thread-head"><button class="pt-back" type="button" data-act="back">← ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(current.subject)}</h3><p class="pt-meta">${escapeHtml(current.id)}${team ? " · " + escapeHtml(current.business_name || "") + " · " + escapeHtml(current.email || "") : ""} · ${escapeHtml(tr("submitted"))} ${escapeHtml(formatDate(current.created_at))}</p>${controls}</div>
+    main.innerHTML = `<div class="pt-thread"><div class="pt-thread-head"><button class="pt-back" type="button" data-act="back">←︎ ${escapeHtml(tr("pt_back"))}</button><h3>${escapeHtml(current.subject)}</h3><p class="pt-meta">${escapeHtml(current.id)}${team ? " · " + escapeHtml(current.business_name || "") + " · " + escapeHtml(current.email || "") : ""} · ${escapeHtml(tr("submitted"))} ${escapeHtml(formatDate(current.created_at))}</p>${controls}</div>
       <div class="pt-msgs" id="pt-msgs" tabindex="0"><p class="small-note">${escapeHtml(tr("pt_loading"))}</p></div>
-      <form class="pt-composer"><label for="pt-body" class="sr-only">${escapeHtml(tr("pt_write"))}</label><textarea id="pt-body" name="body" rows="3" maxlength="5000" placeholder="${escapeHtml(tr("pt_write"))}"></textarea>${pickerHtml()}<div class="pt-composer-row"><span class="small-note">${escapeHtml(tr("pt_attach_hint"))}</span><button class="button button-blue" type="submit">${escapeHtml(tr("pt_send"))} <span aria-hidden="true">↗</span></button></div><p class="form-status" role="status"></p></form>
+      <form class="pt-composer"><label for="pt-body" class="sr-only">${escapeHtml(tr("pt_write"))}</label><textarea id="pt-body" name="body" rows="3" maxlength="5000" placeholder="${escapeHtml(tr("pt_write"))}"></textarea>${pickerHtml()}<div class="pt-composer-row"><span class="small-note">${escapeHtml(tr("pt_attach_hint"))}</span><button class="button button-blue" type="submit">${escapeHtml(tr("pt_send"))} <span aria-hidden="true">↗︎</span></button></div><p class="form-status" role="status"></p></form>
       <div class="pt-danger"><button type="button" class="pt-delete" data-act="delete">${escapeHtml(tr("delete"))}</button></div></div>`;
     const form = main.querySelector("form");
     picker = makePicker(form);
@@ -388,7 +388,7 @@ window.PortalUI = (() => {
       login.appendChild(link);
       const forgot = document.createElement("form");
       forgot.className = "login-card forgot-form"; forgot.hidden = true;
-      forgot.innerHTML = `<h2>${tx("pt_forgot_h")}</h2><p>${tx("pt_forgot_help")}</p><label for="forgot-${role}"><span>${tx("lbl_email")}</span><input id="forgot-${role}" name="email" type="email" autocomplete="username" required placeholder="name@example.com"></label><button class="button button-blue" type="submit"><span>${tx("pt_send_link")}</span> <span aria-hidden="true">↗</span></button><p class="auth-links"><button type="button" class="link-btn" data-back>${tx("pt_back_signin")}</button></p><p class="form-status" role="status"></p>`;
+      forgot.innerHTML = `<h2>${tx("pt_forgot_h")}</h2><p>${tx("pt_forgot_help")}</p><label for="forgot-${role}"><span>${tx("lbl_email")}</span><input id="forgot-${role}" name="email" type="email" autocomplete="username" required placeholder="name@example.com"></label><button class="button button-blue" type="submit"><span>${tx("pt_send_link")}</span> <span aria-hidden="true">↗︎</span></button><p class="auth-links"><button type="button" class="link-btn" data-back>${tx("pt_back_signin")}</button></p><p class="form-status" role="status"></p>`;
       login.after(forgot);
       const toggle = (open) => { login.hidden = open; forgot.hidden = !open; forgot.querySelector(".form-status").textContent = ""; };
       link.querySelector("button").addEventListener("click", () => toggle(true));
@@ -408,7 +408,7 @@ window.PortalUI = (() => {
     $(".portal-tabs")?.classList.add("is-hidden"); document.querySelectorAll(".portal-panel").forEach((panel) => panel.classList.add("is-hidden"));
     const panel = document.createElement("form");
     panel.className = "login-card reset-panel";
-    panel.innerHTML = `<h2>${tx("pt_reset_h")}</h2><p>${tx("pt_reset_help")}</p>${passwordFields(false)}<button class="button button-blue" type="submit"><span>${tx("pt_save_pw")}</span> <span aria-hidden="true">↗</span></button><p class="form-status" role="status"></p>`;
+    panel.innerHTML = `<h2>${tx("pt_reset_h")}</h2><p>${tx("pt_reset_help")}</p>${passwordFields(false)}<button class="button button-blue" type="submit"><span>${tx("pt_save_pw")}</span> <span aria-hidden="true">↗︎</span></button><p class="form-status" role="status"></p>`;
     holder.prepend(panel);
     panel.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -416,7 +416,7 @@ window.PortalUI = (() => {
       if (data.password !== data.again) { status.textContent = tr("pt_pw_mismatch"); return; }
       try {
         await api("api/password.php?action=reset", { method: "POST", body: JSON.stringify({ token, password: data.password }) });
-        panel.innerHTML = `<h2>${tx("pt_reset_done_h")}</h2><p>${tx("pt_reset_done")}</p><a class="button button-blue" href="portal.html${params.get("role") === "team" ? "#team" : ""}"><span>${tx("signin")}</span> <span aria-hidden="true">↗</span></a>`;
+        panel.innerHTML = `<h2>${tx("pt_reset_done_h")}</h2><p>${tx("pt_reset_done")}</p><a class="button button-blue" href="portal.html${params.get("role") === "team" ? "#team" : ""}"><span>${tx("signin")}</span> <span aria-hidden="true">↗︎</span></a>`;
         history.replaceState(null, "", "portal.html");
       } catch (error) { status.textContent = error.message; }
     });
@@ -441,7 +441,7 @@ window.PortalUI = (() => {
       <label for="su-pw2"><span>${tx("pt_confirm_pw")}</span><input id="su-pw2" name="again" type="password" autocomplete="new-password" minlength="8" required></label>
       <p class="small-note">${tx("pt_pw_hint")}</p>
       <div class="hp-field" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-      <button class="button button-blue" type="submit"><span>${tx("su_submit")}</span> <span aria-hidden="true">↗</span></button>
+      <button class="button button-blue" type="submit"><span>${tx("su_submit")}</span> <span aria-hidden="true">↗︎</span></button>
       <p class="auth-links"><button type="button" class="link-btn" data-back>${tx("pt_back_signin")}</button></p><p class="form-status" role="status"></p>`;
     login.after(form);
     const toggle = (open) => { login.hidden = open; form.hidden = !open; form.querySelector(".form-status").textContent = ""; if (open) form.querySelector("input")?.focus(); };
