@@ -57,6 +57,9 @@ if (scrollMeter) {
 const menuToggle = $(".menu-toggle");
 const nav = $(".site-nav");
 menuToggle?.addEventListener("click", () => { const open = nav.classList.toggle("is-open"); menuToggle.setAttribute("aria-expanded", String(open)); });
+const closeMenu = () => { nav?.classList.remove("is-open"); menuToggle?.setAttribute("aria-expanded", "false"); };
+document.addEventListener("click", (event) => { if (nav?.classList.contains("is-open") && !event.target.closest(".site-nav, .menu-toggle")) closeMenu(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeMenu(); });
 document.querySelectorAll(".site-nav a").forEach((link) => link.addEventListener("click", () => { nav?.classList.remove("is-open"); menuToggle?.setAttribute("aria-expanded", "false"); }));
 document.querySelectorAll(".tab-button").forEach((button) => button.addEventListener("click", () => { document.querySelectorAll(".tab-button").forEach((item) => { item.classList.toggle("is-active", item === button); item.setAttribute("aria-selected", String(item === button)); }); document.querySelectorAll(".portal-panel").forEach((panel) => panel.classList.toggle("is-hidden", panel.dataset.panel !== button.dataset.tab)); }));
 document.querySelectorAll("[data-demo-fill]").forEach((button) => button.addEventListener("click", () => { const isTeam = button.dataset.demoFill === "team"; const prefix = isTeam ? "login" : "customer-login"; $(`#${prefix}-email`).value = isTeam ? "team@dsma.demo" : "customer@dsma.demo"; $(`#${prefix}-password`).value = isTeam ? "DSMA-team-2026" : "DSMA-customer-2026"; $(`#${prefix}-password`).focus(); }));
