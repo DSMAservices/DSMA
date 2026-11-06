@@ -204,3 +204,23 @@ if (footerMark && "IntersectionObserver" in window) {
   window.addEventListener("load", () => sample(false));
   if ("IntersectionObserver" in window) new IntersectionObserver((entries) => (entries[0].isIntersecting ? start() : stop())).observe(header); else start();
 })();
+
+// ---- "Add to your phone": installable web app (works in the browser, no app store) ----
+(() => {
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  const main = document.querySelector(".portal-main");
+  if (!main || window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;
+  let offer = null;
+  const box = document.createElement("div");
+  box.className = "app-tip";
+  box.innerHTML = '<button class="button button-outline" type="button"><span data-i18n="app_add">Add to your phone</span></button><p class="small-note" hidden></p>';
+  main.prepend(box);
+  const note = box.querySelector("p");
+  if (window.setLang && window.currentLang) window.setLang(window.currentLang());
+  window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); offer = event; });
+  box.querySelector("button").addEventListener("click", async () => {
+    if (offer) { offer.prompt(); offer = null; return; }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    note.dataset.i18n = ios ? "app_ios" : "app_other"; note.textContent = tr(note.dataset.i18n); note.hidden = false;
+  });
+})();

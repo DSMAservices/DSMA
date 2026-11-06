@@ -1105,3 +1105,6 @@ html[lang="te"] .hero2 h1 { line-height: 1.3 !important; }
 .pt-form select { width: 100%; padding: 12px; border: 2px solid var(--ink); border-radius: 10px; font: inherit; background: var(--white); }
 .pt-danger { border-color: #b3261e; color: #b3261e; }
 [hidden] { display: none !important; }
+
+.app-tip { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin: 0 0 14px; }
+.app-tip .button { min-height: 48px; }
